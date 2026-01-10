@@ -292,7 +292,7 @@ export function Dashboard() {
                              </div>
                              <button
                                 onClick={(e) => handleDelete(expense.id || expense._id!, e)}
-                                className="opacity-0 group-hover:opacity-100 transition-all p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full"
+                                className="transition-all p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full"
                              >
                                 <Icons.Trash className="w-5 h-5" />
                              </button>

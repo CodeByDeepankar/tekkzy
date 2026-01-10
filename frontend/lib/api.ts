@@ -1,5 +1,5 @@
 
-const BASE_URL = 'https://6uu73dgqj7.execute-api.us-east-1.amazonaws.com/dev';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type APIPayload = Record<string, unknown>;
 
