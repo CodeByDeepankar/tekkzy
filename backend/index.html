@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Spend Manager</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f6f8; color: #333; }
+        h1, h2 { color: #2c3e50; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background 0.3s; }
+        
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-primary:hover { background-color: #0056b3; }
+        
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-success:hover { background-color: #218838; }
+        
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-danger:hover { background-color: #c82333; }
+        
+        .btn-warning { background-color: #ffc107; color: black; }
+        .btn-warning:hover { background-color: #e0a800; }
+        
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-secondary:hover { background-color: #5a6268; }
+
+        .auth-toggle { margin-top: 15px; text-align: center; }
+        .auth-toggle a { color: #007bff; text-decoration: none; cursor: pointer; }
+        
+        .hidden { display: none; }
+        
+        .expense-item { border-left: 4px solid #007bff; background: white; padding: 15px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .expense-details h3 { margin: 0 0 5px 0; font-size: 18px; }
+        .expense-details p { margin: 0; color: #666; font-size: 14px; }
+        .expense-actions { min-width: 140px; text-align: right; }
+        .expense-actions button { padding: 5px 10px; font-size: 14px; margin-left: 5px; }
+
+        #user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- Auth Section -->
+    <div id="auth-section">
+        <h1 style="text-align: center;">Daily Spend Manager</h1>
+        
+        <!-- Login Form -->
+        <div id="login-container" class="container">
+            <h2>Login</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Login</button>
+            </form>
+            <div class="auth-toggle">
+                Don't have an account? <a onclick="showRegister()">Register</a>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-container" class="container hidden">
+            <h2>Register</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="reg-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="reg-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="reg-password" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Register</button>
+            </form>
+            <div class="auth-toggle">
+                Already have an account? <a onclick="showLogin()">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboard-section" class="hidden">
+        <div id="user-info">
+            <h1>My Expenses</h1>
+            <div>
+                <span id="user-name" style="margin-right: 15px; font-weight: bold;"></span>
+                <button onclick="logout()" class="btn-secondary">Logout</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <h2 id="form-title">Add New Expense</h2>
+            <form id="expense-form">
+                <input type="hidden" id="expense-id">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="title" required placeholder="e.g. Lunch">
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="amount" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="category" required>
+                        <option value="">Select Category</option>
+                        <option value="food">Food</option>
+                        <option value="transport">Transport</option>
+                        <option value="utilities">Utilities</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Payment Mode</label>
+                    <select id="paymentMode" required>
+                        <option value="">Select Payment Mode</option>
+                        <option value="cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="card">Card</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="date">
+                </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <textarea id="note" rows="2"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" id="submit-btn" class="btn-success">Add Expense</button>
+                    <button type="button" id="cancel-btn" class="btn-secondary hidden" onclick="resetForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <h2>Recent Expenses</h2>
+        <div id="expense-list">
+            <!-- Expenses will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user'));
+
+        // --- DOM Elements ---
+        const authSection = document.getElementById('auth-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const loginContainer = document.getElementById('login-container');
+        const registerContainer = document.getElementById('register-container');
+        const userNameSpan = document.getElementById('user-name');
+        
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const expenseForm = document.getElementById('expense-form');
+        const expenseList = document.getElementById('expense-list');
+        const expenseIdInput = document.getElementById('expense-id');
+        const formTitle = document.getElementById('form-title');
+        const submitBtn = document.getElementById('submit-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        // --- Init ---
+        checkAuth();
+        document.getElementById('date').valueAsDate = new Date();
+
+        // --- Auth Functions ---
+        function checkAuth() {
+            if (token && user) {
+                authSection.classList.add('hidden');
+                dashboardSection.classList.remove('hidden');
+                userNameSpan.textContent = `Welcome, ${user.name}`;
+                fetchExpenses();
+            } else {
+                authSection.classList.remove('hidden');
+                dashboardSection.classList.add('hidden');
+            }
+        }
+
+        window.showLogin = function() {
+            loginContainer.classList.remove('hidden');
+            registerContainer.classList.add('hidden');
+        }
+
+        window.showRegister = function() {
+            loginContainer.classList.add('hidden');
+            registerContainer.classList.remove('hidden');
+        }
+
+        window.logout = function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            token = null;
+            user = null;
+            checkAuth();
+        }
+
+        // --- API Calls ---
+        // Change this URL to your deployed backend URL
+        const API_BASE_URL = 'https://6uu73dgqj7.execute-api.us-east-1.amazonaws.com/dev'; 
+        const USE_LOCAL_BACKEND_ON_LOCALHOST = false; // Set to true to use localhost:3000 when developing locally
+        
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            let baseUrl = API_BASE_URL;
+            
+            // Override with local backend if configured and running on localhost
+            if (USE_LOCAL_BACKEND_ON_LOCALHOST && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+                 baseUrl = 'http://localhost:3000';
+            }
+
+            const url = `${baseUrl}${endpoint}`;
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+
+            const response = await fetch(url, options);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Something went wrong');
+            }
+            return data;
+        }
+
+        // --- Event Listeners ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const data = await apiCall('/api/auth/login', 'POST', { email, password });
+                token = data.token;
+                user = { name: data.name, email: data.email };
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', JSON.stringify(user));
+                checkAuth();
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            try {
+                const data = await apiCall('/api/auth/register', 'POST', { name, email, password });
+                token = data.token;
+                user = { name: data.name, email: data.email };
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', JSON.stringify(user));
+                checkAuth();
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        expenseForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = expenseIdInput.value;
+            const data = {
+                title: document.getElementById('title').value,
+                amount: document.getElementById('amount').value,
+                category: document.getElementById('category').value,
+                paymentMode: document.getElementById('paymentMode').value,
+                date: document.getElementById('date').value,
+                note: document.getElementById('note').value
+            };
+
+            try {
+                if (id) {
+                    await apiCall(`/api/expenses/${id}`, 'PUT', data);
+                } else {
+                    await apiCall('/api/expenses', 'POST', data);
+                }
+                resetForm();
+                fetchExpenses();
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        // --- Expense Functions ---
+        async function fetchExpenses() {
+            try {
+                const expenses = await apiCall('/api/expenses');
+                renderExpenses(expenses);
+            } catch (error) {
+                console.error(error);
+                if (error.message.includes('Not authorized')) logout();
+            }
+        }
+
+        function renderExpenses(expenses) {
+            expenseList.innerHTML = '';
+            if (expenses.length === 0) {
+                expenseList.innerHTML = '<p>No expenses found. Add one above!</p>';
+                return;
+            }
+            expenses.forEach(expense => {
+                const item = document.createElement('div');
+                item.className = 'expense-item';
+                item.innerHTML = `
+                    <div class="expense-details">
+                        <h3>${expense.title} - $${expense.amount}</h3>
+                        <p>
+                            <strong>${new Date(expense.date).toLocaleDateString()}</strong> | 
+                            ${expense.category} | 
+                            ${expense.paymentMode}
+                        </p>
+                        ${expense.note ? `<p><em>${expense.note}</em></p>` : ''}
+                    </div>
+                    <div class="expense-actions">
+                        <button class="btn-warning" onclick="startEdit('${expense._id}')">Edit</button>
+                        <button class="btn-danger" onclick="deleteExpense('${expense._id}')">Delete</button>
+                    </div>
+                `;
+                expenseList.appendChild(item);
+            });
+        }
+
+        window.startEdit = async (id) => {
+            try {
+                const expense = await apiCall(`/api/expenses/${id}`);
+                
+                expenseIdInput.value = expense._id;
+                document.getElementById('title').value = expense.title;
+                document.getElementById('amount').value = expense.amount;
+                document.getElementById('category').value = expense.category;
+                document.getElementById('paymentMode').value = expense.paymentMode;
+                document.getElementById('date').value = expense.date.split('T')[0];
+                document.getElementById('note').value = expense.note || '';
+
+                formTitle.textContent = 'Edit Expense';
+                submitBtn.textContent = 'Update Expense';
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-warning');
+                cancelBtn.classList.remove('hidden');
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load expense details');
+            }
+        };
+
+        window.deleteExpense = async (id) => {
+            if (confirm('Are you sure you want to delete this expense?')) {
+                try {
+                    await apiCall(`/api/expenses/${id}`, 'DELETE');
+                    fetchExpenses();
+                } catch (error) {
+                    alert(error.message);
+                }
+            }
+        };
+
+        window.resetForm = () => {
+            expenseForm.reset();
+            expenseIdInput.value = '';
+            formTitle.textContent = 'Add New Expense';
+            submitBtn.textContent = 'Add Expense';
+            submitBtn.classList.add('btn-success');
+            submitBtn.classList.remove('btn-warning');
+            cancelBtn.classList.add('hidden');
+            document.getElementById('date').valueAsDate = new Date();
+        };
+    </script>
+</body>
+</html>
