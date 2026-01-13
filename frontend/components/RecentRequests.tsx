@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Code } from 'lucide-react';
-// @ts-ignore
 import Carousel from './Carousel';
 
 interface ContactRequest {
@@ -73,7 +72,7 @@ export default function RecentRequests() {
   return (
     <div style={{ height: '600px', position: 'relative' }} className="w-full flex items-center justify-center">
       <Carousel
-        items={items as any}
+        items={items}
         baseWidth={320}
         autoplay={true}
         autoplayDelay={3000}

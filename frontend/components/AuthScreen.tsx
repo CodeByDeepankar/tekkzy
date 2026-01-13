@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/Card';
-import { Button } from './ui/Button';
-import { Input } from './ui/Input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -97,9 +98,9 @@ export function AuthScreen() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                     {!isLogin && (
                         <div className="space-y-2">
+                            <Label htmlFor="name">Full Name</Label>
                             <Input
                             id="name"
-                            label="Full Name"
                             type="text"
                             placeholder="John Doe"
                             value={name}
@@ -110,9 +111,9 @@ export function AuthScreen() {
                     )}
 
                     <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
                         <Input
                         id="email"
-                        label="Email Address"
                         type="email"
                         placeholder="john@example.com"
                         value={email}
@@ -122,9 +123,9 @@ export function AuthScreen() {
                     </div>
 
                     <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
                         <Input
                         id="password"
-                        label="Password"
                         type="password"
                         placeholder="••••••••"
                         value={password}
@@ -133,7 +134,7 @@ export function AuthScreen() {
                         />
                     </div>
 
-                    <Button type="submit" isLoading={loading} className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+                    <Button type="submit" disabled={loading} className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
                         {isLogin ? 'Sign In' : 'Create Account'}
                     </Button>
                     </form>

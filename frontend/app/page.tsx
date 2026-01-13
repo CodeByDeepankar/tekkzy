@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import RecentRequests from '@/components/RecentRequests';
 
 export default function Home() {
@@ -22,6 +21,7 @@ export default function Home() {
                 <div className="container">
                     <div className="about-grid">
                         <div className="about-image">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80" alt="Team meeting in a modern office" />
                         </div>
                         <div className="about-text">
