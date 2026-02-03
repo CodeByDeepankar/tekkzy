@@ -145,7 +145,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-                "S3Key": "serverless/daily-spend-manager/dev/1770138352198-2026-02-03T17:05:52.198Z/daily-spend-manager.zip"
+                "S3Key": "serverless/daily-spend-manager/dev/1770140778466-2026-02-03T17:46:18.466Z/daily-spend-manager.zip"
               },
               "Handler": "lambda.handler",
               "Runtime": "nodejs18.x",
@@ -171,14 +171,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersioncc7ImcpFVixLZiNyS93qEQTvlQDymZChkC8XG7UMv0o": {
+          "ApiLambdaVersion17FmNNopbGXHPGQ9sYw5jsboHUwVnnW1duNiDZhkiI": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "LuzDT4hq208njeMAqRJw98RJfNbIRUCo23QYMNnnDN4="
+              "CodeSha256": "h//7CjAJg1bLLCeLw6/YSL26siNSYx3gl2dBGPLVRl8="
             }
           },
           "ApiGatewayRestApi": {
@@ -396,7 +396,7 @@
               "ApiLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1770138328088": {
+          "ApiGatewayDeployment1770140753717": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -540,7 +540,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersioncc7ImcpFVixLZiNyS93qEQTvlQDymZChkC8XG7UMv0o"
+              "Ref": "ApiLambdaVersion17FmNNopbGXHPGQ9sYw5jsboHUwVnnW1duNiDZhkiI"
             },
             "Export": {
               "Name": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
@@ -639,7 +639,7 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersioncc7ImcpFVixLZiNyS93qEQTvlQDymZChkC8XG7UMv0o"
+        "versionLogicalId": "ApiLambdaVersion17FmNNopbGXHPGQ9sYw5jsboHUwVnnW1duNiDZhkiI"
       }
     },
     "resources": {
@@ -755,7 +755,7 @@
     "artifact": "/home/deep/coding/tekkzy/backend/.serverless/daily-spend-manager.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/daily-spend-manager/dev/1770138352198-2026-02-03T17:05:52.198Z",
+    "artifactDirectoryName": "serverless/daily-spend-manager/dev/1770140778466-2026-02-03T17:46:18.466Z",
     "artifact": "daily-spend-manager.zip"
   }
 }

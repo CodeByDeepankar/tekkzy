@@ -227,20 +227,20 @@
     "userName": "deepankar68",
     "serviceProviderAwsAccountId": "542829982435",
     "serviceProviderAwsCfStackName": "daily-spend-manager-dev",
-    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:542829982435:stack/daily-spend-manager-dev/18041470-ee6a-11f0-8b62-0efc62f9d9cd",
-    "serviceProviderAwsCfStackCreated": "2026-01-10T21:19:48.680Z",
-    "serviceProviderAwsCfStackUpdated": "2026-02-03T17:06:35.439Z",
-    "serviceProviderAwsCfStackStatus": "DELETE_FAILED",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:542829982435:stack/daily-spend-manager-dev/dece9970-0127-11f1-8f65-0e4555ce26af",
+    "serviceProviderAwsCfStackCreated": "2026-02-03T17:43:38.004Z",
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": "CREATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "ApiLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-1:542829982435:function:daily-spend-manager-dev-api:13",
+        "OutputValue": "arn:aws:lambda:us-east-1:542829982435:function:daily-spend-manager-dev-api:14",
         "Description": "Current Lambda function version",
         "ExportName": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "ServiceEndpoint",
-        "OutputValue": "https://6uu73dgqj7.execute-api.us-east-1.amazonaws.com/dev",
+        "OutputValue": "https://e8fqpcb934.execute-api.us-east-1.amazonaws.com/dev",
         "Description": "URL of the service endpoint",
         "ExportName": "sls-daily-spend-manager-dev-ServiceEndpoint"
       },
