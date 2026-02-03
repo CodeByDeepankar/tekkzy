@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { API_BASE_URL } from "@/lib/api";
 
@@ -22,8 +22,6 @@ const placeholderImages = [
 export default function MessageBanner() {
   const [requests, setRequests] = useState<ContactRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dragWidth, setDragWidth] = useState(0);
-  const trackRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -49,18 +47,6 @@ export default function MessageBanner() {
     fetchRequests();
   }, []);
 
-  useEffect(() => {
-    if (!trackRef.current) return;
-    const track = trackRef.current;
-    const calculate = () => {
-      const width = track.scrollWidth - track.clientWidth;
-      setDragWidth(width > 0 ? width : 0);
-    };
-    calculate();
-    window.addEventListener("resize", calculate);
-    return () => window.removeEventListener("resize", calculate);
-  }, [requests]);
-
   if (loading || requests.length === 0) return null;
 
   return (
@@ -72,13 +58,7 @@ export default function MessageBanner() {
           <p>See the latest messages coming in from teams ready to build with Tekkzy.</p>
         </div>
 
-        <motion.div
-          ref={trackRef}
-          className="message-banner-track"
-          drag="x"
-          dragConstraints={{ left: -dragWidth, right: 0 }}
-          whileTap={{ cursor: "grabbing" }}
-        >
+        <motion.div className="message-banner-track">
           {requests.map((req, index) => (
             <motion.article
               key={`${req.email}-${index}`}
