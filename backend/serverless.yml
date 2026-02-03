@@ -7,6 +7,30 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
+  environment:
+    DYNAMODB_USERS_TABLE: ${self:service}-${sls:stage}-users
+    DYNAMODB_CONTACTS_TABLE: ${self:service}-${sls:stage}-contacts
+    DYNAMODB_USERS_EMAIL_INDEX: email-index
+    S3_BUCKET: ${self:service}-${sls:stage}-uploads-${aws:accountId}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users/index/email-index
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-contacts
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+          Resource:
+            - arn:aws:s3:::${self:service}-${sls:stage}-uploads-${aws:accountId}/*
 
 functions:
   api:
@@ -23,3 +47,55 @@ functions:
 
 plugins:
   - serverless-offline
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${sls:stage}-users
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: email-index
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    ContactsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${sls:stage}-contacts
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: contactId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: contactId
+            KeyType: HASH
+
+    UploadsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-${sls:stage}-uploads-${aws:accountId}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - PUT
+                - POST
+                - GET
+                - HEAD
+              MaxAge: 3000

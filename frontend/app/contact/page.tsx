@@ -3,9 +3,14 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { API_BASE_URL } from '@/lib/api';
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadPreview, setUploadPreview] = useState<string | null>(null);
+    const [uploadError, setUploadError] = useState<string | null>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
   const { isAuthenticated, token } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -15,7 +20,7 @@ export default function Contact() {
     const form = e.currentTarget;
     const formData = new FormData(form);
     
-    const submitData = {
+    const submitData: Record<string, unknown> = {
         name: formData.get('name'),
         email: formData.get('email'),
         service: formData.get('service'),
@@ -23,7 +28,49 @@ export default function Contact() {
     };
     
     try {
-        const response = await fetch('https://6uu73dgqj7.execute-api.us-east-1.amazonaws.com/dev/api/contacts', {
+        if (!API_BASE_URL) {
+            throw new Error('API base URL is not configured');
+        }
+
+        if (imageFile) {
+            setIsUploading(true);
+            setUploadError(null);
+
+            const presignResponse = await fetch(`${API_BASE_URL}/api/uploads/presign`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    fileName: imageFile.name,
+                    contentType: imageFile.type
+                })
+            });
+
+            if (!presignResponse.ok) {
+                const err = await presignResponse.json().catch(() => ({}));
+                throw new Error(err.message || 'Failed to get upload URL');
+            }
+
+            const { uploadUrl, key } = await presignResponse.json();
+
+            const uploadResponse = await fetch(uploadUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': imageFile.type
+                },
+                body: imageFile
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error('Failed to upload image');
+            }
+
+            submitData.imageKey = key;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/contacts`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -35,14 +82,19 @@ export default function Contact() {
         if (response.ok) {
             alert('Thank you for contacting Tekkzy! We have received your message and will get back to you shortly.');
             form.reset();
+            setImageFile(null);
+            setUploadPreview(null);
         } else {
             console.error('Submission failed');
             alert('Something went wrong. Please try again.');
         }
     } catch (error) {
         console.error('Error submitting contact form:', error);
+        const message = error instanceof Error ? error.message : 'Failed to send message';
+        setUploadError(message);
         alert('Error sending message. Please check your connection.');
     } finally {
+        setIsUploading(false);
         setIsSubmitting(false);
     }
   };
@@ -119,8 +171,43 @@ export default function Contact() {
                                     <textarea id="message" name="message" rows={5} placeholder="Tell us about your project or inquiry..." required></textarea>
                                 </div>
 
-                                <button type="submit" className="btn btn-primary" style={{width: '100%'}} disabled={isSubmitting}>
-                                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                                <div className="form-group">
+                                    <label htmlFor="profileImage">Upload Profile Image</label>
+                                    <input
+                                        type="file"
+                                        id="profileImage"
+                                        name="profileImage"
+                                        accept="image/*"
+                                        onChange={(event) => {
+                                            const file = event.target.files?.[0] || null;
+                                            setImageFile(file);
+                                            setUploadError(null);
+                                            if (file) {
+                                                setUploadPreview(URL.createObjectURL(file));
+                                            } else {
+                                                setUploadPreview(null);
+                                            }
+                                        }}
+                                    />
+                                    {uploadPreview && (
+                                        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <img
+                                                src={uploadPreview}
+                                                alt="Preview"
+                                                style={{ width: '56px', height: '56px', borderRadius: '999px', objectFit: 'cover', border: '1px solid var(--border-color)' }}
+                                            />
+                                            <span style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>
+                                                This image will appear with your message.
+                                            </span>
+                                        </div>
+                                    )}
+                                    {uploadError && (
+                                        <p style={{ color: '#b91c1c', marginTop: '8px', fontSize: '0.9rem' }}>{uploadError}</p>
+                                    )}
+                                </div>
+
+                                <button type="submit" className="btn btn-primary" style={{width: '100%'}} disabled={isSubmitting || isUploading}>
+                                    {isSubmitting ? 'Sending...' : (isUploading ? 'Uploading...' : 'Send Message')}
                                 </button>
                             </form>
                         ) : (

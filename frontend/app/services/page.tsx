@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function Services() {
   return (
     <main>
-        <section className="section-header" style={{backgroundColor: 'var(--bg-white)', paddingBottom: '40px', marginBottom: 0}}>
+        <section className="section-header" style={{ paddingBottom: '40px', marginBottom: 0}}>
             <span className="subtitle" style={{marginTop: '60px', display: 'inline-block'}}>Our Expertise</span>
             <h2>Comprehensive Digital Solutions</h2>
             <p>We combine technical excellence with business strategy to deliver services that drive growth.</p>

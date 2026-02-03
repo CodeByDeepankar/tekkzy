@@ -1,4 +1,16 @@
-const Contact = require('../models/Contact');
+const { v4: uuidv4 } = require('uuid');
+const { ScanCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const { docClient } = require('../config/dynamo');
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+
+const CONTACTS_TABLE = process.env.DYNAMODB_CONTACTS_TABLE;
+const BUCKET = process.env.S3_BUCKET;
+const region =
+    process.env.AWS_REGION ||
+    process.env.AWS_DEFAULT_REGION ||
+    'us-east-1';
+const s3 = new S3Client({ region });
 
 // @desc    Get contacts
 // @route   GET /api/contacts
@@ -6,9 +18,17 @@ const Contact = require('../models/Contact');
 const getContacts = async (req, res) => {
     try {
         // User requested "view all submited users data", assuming authorized user can see all.
-        const contacts = await Contact.find().sort({ createdAt: -1 });
+        const result = await docClient.send(
+            new ScanCommand({
+                TableName: CONTACTS_TABLE
+            })
+        );
 
-        const formattedContacts = contacts.map(contact => {
+        const contacts = (result.Items || []).sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        const formattedContacts = await Promise.all(contacts.map(async (contact) => {
             // Mask Email
             let maskedEmail = contact.email;
             if (contact.email.includes('@')) {
@@ -35,14 +55,28 @@ const getContacts = async (req, res) => {
                 submitted = `${Math.floor(diffInSeconds / 86400)} d ago`;
             }
 
+            let imageUrl = null;
+            if (contact.imageKey && BUCKET) {
+                try {
+                    const command = new GetObjectCommand({
+                        Bucket: BUCKET,
+                        Key: contact.imageKey
+                    });
+                    imageUrl = await getSignedUrl(s3, command, { expiresIn: 900 });
+                } catch (err) {
+                    console.error('Failed to sign image URL', err);
+                }
+            }
+
             return {
                 name: contact.name,
                 service: contact.service,
                 message: contact.message,
                 email: maskedEmail,
-                submitted: `submitted ${submitted}`
+                submitted: `submitted ${submitted}`,
+                imageUrl
             };
-        });
+        }));
 
         res.status(200).json(formattedContacts);
     } catch (error) {
@@ -55,21 +89,37 @@ const getContacts = async (req, res) => {
 // @access  Private
 const createContact = async (req, res) => {
     try {
-        const { name, email, service, message } = req.body;
+        const { name, email, service, message, imageKey } = req.body;
 
         if (!name || !email || !service || !message) {
             return res.status(400).json({ message: 'Please add all required fields' });
         }
 
-        const contact = await Contact.create({
+        const contactId = uuidv4();
+        const createdAt = new Date().toISOString();
+
+        const contactItem = {
+            contactId,
             userId: req.user.id,
             name,
             email,
             service,
-            message
-        });
+            message,
+            createdAt
+        };
 
-        res.status(201).json(contact);
+        if (imageKey) {
+            contactItem.imageKey = imageKey;
+        }
+
+        await docClient.send(
+            new PutCommand({
+                TableName: CONTACTS_TABLE,
+                Item: contactItem
+            })
+        );
+
+        res.status(201).json(contactItem);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

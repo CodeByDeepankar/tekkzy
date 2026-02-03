@@ -1,22 +1,4 @@
-const mongoose = require('mongoose');
-
-let conn = null;
-
-const connectDB = async () => {
-    if (conn !== null) {
-        return conn;
-    }
-
-    try {
-        conn = await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 5000 
-        });
-        console.log('MongoDB Connected');
-        return conn;
-    } catch (error) {
-        console.error('MongoDB connection error:', error);
-        throw error;
-    }
+// MongoDB integration removed. This module remains as a no-op placeholder.
+module.exports = async () => {
+    throw new Error('MongoDB has been removed from this backend.');
 };
-
-module.exports = connectDB;

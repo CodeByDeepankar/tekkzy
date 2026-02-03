@@ -1,12 +1,13 @@
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
 
 type APIPayload = Record<string, unknown>;
 
 export const api = {
   auth: {
     register: async (data: APIPayload) => {
-      const res = await fetch(`${BASE_URL}/api/auth/register`, {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -15,7 +16,8 @@ export const api = {
       return res.json();
     },
     login: async (data: APIPayload) => {
-      const res = await fetch(`${BASE_URL}/api/auth/login`, {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -30,14 +32,16 @@ export const api = {
   },
   expenses: {
     list: async (token: string) => {
-      const res = await fetch(`${BASE_URL}/api/expenses`, {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/expenses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to fetch expenses');
       return res.json();
     },
     create: async (token: string, data: APIPayload) => {
-      const res = await fetch(`${BASE_URL}/api/expenses`, {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/expenses`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -58,7 +62,8 @@ export const api = {
       return res.json();
     },
     update: async (token: string, id: string, data: APIPayload) => {
-      const res = await fetch(`${BASE_URL}/api/expenses/${id}`, {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/expenses/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -70,7 +75,8 @@ export const api = {
       return res.json();
     },
     delete: async (token: string, id: string) => {
-      const res = await fetch(`${BASE_URL}/api/expenses/${id}`, {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/expenses/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

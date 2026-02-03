@@ -1,25 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors'); 
-const path = require('path');
-const connectDB = require('./config/db');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// Middleware to ensure DB connection for Lambda (Must be before routes)
-app.use(async (req, res, next) => {
-    try {
-        await connectDB();
-        next();
-    } catch (err) {
-        console.error("Database connection error:", err);
-        res.status(500).json({ error: "Database connection failed", details: err.message });
-    }
-});
 
 // Core API response at root
 app.get('/', (req, res) => {
@@ -36,6 +23,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/contacts', require('./routes/contactRoutes'));
+app.use('/api/uploads', require('./routes/uploadRoutes'));
 
 // Error Handler
 app.use((err, req, res, next) => {
@@ -49,12 +37,9 @@ app.use((err, req, res, next) => {
 
 // Only start the server if file is run directly (Local Development)
 if (require.main === module) {
-    // Connect to DB before listening
-    connectDB().then(() => {
-        const PORT = process.env.PORT || 3000;
-        app.listen(PORT, () => {
-            console.log(`Server running on port http://localhost:${PORT}`);
-        });
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Server running on port http://localhost:${PORT}`);
     });
 }
 

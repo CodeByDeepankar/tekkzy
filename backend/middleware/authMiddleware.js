@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { GetCommand } = require('@aws-sdk/lib-dynamodb');
+const { docClient } = require('../config/dynamo');
+
+const USERS_TABLE = process.env.DYNAMODB_USERS_TABLE;
 
 const protect = async (req, res, next) => {
     let token;
@@ -12,12 +15,24 @@ const protect = async (req, res, next) => {
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-            // Get user from the token (exclude password)
-            req.user = await User.findById(decoded.id).select('-password');
+            const userResult = await docClient.send(
+                new GetCommand({
+                    TableName: USERS_TABLE,
+                    Key: { userId: decoded.id }
+                })
+            );
 
-            if (!req.user) {
+            const user = userResult.Item;
+
+            if (!user) {
                 return res.status(401).json({ message: 'User not found' });
             }
+
+            req.user = {
+                id: user.userId,
+                name: user.name,
+                email: user.email
+            };
 
             next();
         } catch (error) {

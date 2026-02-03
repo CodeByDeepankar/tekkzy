@@ -8,6 +8,40 @@
       "name": "aws",
       "runtime": "nodejs18.x",
       "region": "us-east-1",
+      "environment": {
+        "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
+        "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
+        "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
+        "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435"
+      },
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:PutItem",
+                "dynamodb:GetItem",
+                "dynamodb:Query",
+                "dynamodb:Scan"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users",
+                "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users/index/email-index",
+                "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:PutObject",
+                "s3:GetObject"
+              ],
+              "Resource": "arn:aws:s3:::daily-spend-manager-dev-uploads-542829982435/*"
+            }
+          ]
+        }
+      },
       "stage": "dev",
       "versionFunctions": true,
       "compiledCloudFormationTemplate": {
@@ -77,6 +111,12 @@
                             "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/daily-spend-manager-dev*:*:*"
                           }
                         ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][0]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][1]"
                       }
                     ]
                   }
@@ -103,13 +143,21 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-                "S3Key": "serverless/daily-spend-manager/dev/1770103950430-2026-02-03T07:32:30.430Z/daily-spend-manager.zip"
+                "S3Key": "serverless/daily-spend-manager/dev/1770118790102-2026-02-03T11:39:50.102Z/daily-spend-manager.zip"
               },
               "Handler": "lambda.handler",
               "Runtime": "nodejs18.x",
               "FunctionName": "daily-spend-manager-dev-api",
               "MemorySize": 1024,
               "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
+                  "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
+                  "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
+                  "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435"
+                }
+              },
               "Role": {
                 "Fn::GetAtt": [
                   "IamRoleLambdaExecution",
@@ -121,14 +169,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersiontWSKM8rAu1P695cPMdmTAB4uFwKHv1PeEBWFYcD88g": {
+          "ApiLambdaVersionjICPJzqVpMT4RxRvVRYuuv7uD71567T4HUCDSX5aark": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "VKA9rzEBCRVs30oHRnHSGaeIc8nvfvPLm2fOXrWH+GA="
+              "CodeSha256": "PDVHgNl8POcklY+hA9CexCVBLG4S0PGo1SuyJLyOHQE="
             }
           },
           "ApiGatewayRestApi": {
@@ -346,7 +394,7 @@
               "ApiLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1770103930533": {
+          "ApiGatewayDeployment1770118770111": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -397,6 +445,87 @@
                 ]
               }
             }
+          },
+          "UsersTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "daily-spend-manager-dev-users",
+              "BillingMode": "PAY_PER_REQUEST",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "userId",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "email",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "userId",
+                  "KeyType": "HASH"
+                }
+              ],
+              "GlobalSecondaryIndexes": [
+                {
+                  "IndexName": "email-index",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "email",
+                      "KeyType": "HASH"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                }
+              ]
+            }
+          },
+          "ContactsTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "daily-spend-manager-dev-contacts",
+              "BillingMode": "PAY_PER_REQUEST",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "contactId",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "contactId",
+                  "KeyType": "HASH"
+                }
+              ]
+            }
+          },
+          "UploadsBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": "daily-spend-manager-dev-uploads-542829982435",
+              "CorsConfiguration": {
+                "CorsRules": [
+                  {
+                    "AllowedOrigins": [
+                      "*"
+                    ],
+                    "AllowedHeaders": [
+                      "*"
+                    ],
+                    "AllowedMethods": [
+                      "PUT",
+                      "POST",
+                      "GET",
+                      "HEAD"
+                    ],
+                    "MaxAge": 3000
+                  }
+                ]
+              }
+            }
           }
         },
         "Outputs": {
@@ -409,7 +538,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersiontWSKM8rAu1P695cPMdmTAB4uFwKHv1PeEBWFYcD88g"
+              "Ref": "ApiLambdaVersionjICPJzqVpMT4RxRvVRYuuv7uD71567T4HUCDSX5aark"
             },
             "Export": {
               "Name": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
@@ -508,8 +637,94 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersiontWSKM8rAu1P695cPMdmTAB4uFwKHv1PeEBWFYcD88g"
+        "versionLogicalId": "ApiLambdaVersionjICPJzqVpMT4RxRvVRYuuv7uD71567T4HUCDSX5aark"
       }
+    },
+    "resources": {
+      "Resources": {
+        "UsersTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "daily-spend-manager-dev-users",
+            "BillingMode": "PAY_PER_REQUEST",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "userId",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "email",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "userId",
+                "KeyType": "HASH"
+              }
+            ],
+            "GlobalSecondaryIndexes": [
+              {
+                "IndexName": "email-index",
+                "KeySchema": [
+                  {
+                    "AttributeName": "email",
+                    "KeyType": "HASH"
+                  }
+                ],
+                "Projection": {
+                  "ProjectionType": "ALL"
+                }
+              }
+            ]
+          }
+        },
+        "ContactsTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "daily-spend-manager-dev-contacts",
+            "BillingMode": "PAY_PER_REQUEST",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "contactId",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "contactId",
+                "KeyType": "HASH"
+              }
+            ]
+          }
+        },
+        "UploadsBucket": {
+          "Type": "AWS::S3::Bucket",
+          "Properties": {
+            "BucketName": "daily-spend-manager-dev-uploads-542829982435",
+            "CorsConfiguration": {
+              "CorsRules": [
+                {
+                  "AllowedOrigins": [
+                    "*"
+                  ],
+                  "AllowedHeaders": [
+                    "*"
+                  ],
+                  "AllowedMethods": [
+                    "PUT",
+                    "POST",
+                    "GET",
+                    "HEAD"
+                  ],
+                  "MaxAge": 3000
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Outputs": {}
     },
     "configValidationMode": "warn",
     "serviceFilename": "serverless",
@@ -525,6 +740,9 @@
       },
       "plugins": {
         "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
       }
     },
     "app": "daily-spend-manager",
@@ -535,7 +753,7 @@
     "artifact": "/home/deep/coding/tekkzy/backend/.serverless/daily-spend-manager.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/daily-spend-manager/dev/1770103950430-2026-02-03T07:32:30.430Z",
+    "artifactDirectoryName": "serverless/daily-spend-manager/dev/1770118790102-2026-02-03T11:39:50.102Z",
     "artifact": "daily-spend-manager.zip"
   }
 }
