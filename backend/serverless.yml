@@ -21,6 +21,7 @@ provider:
             - dynamodb:GetItem
             - dynamodb:Query
             - dynamodb:Scan
+            - dynamodb:DeleteItem
           Resource:
             - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users
             - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users/index/email-index
@@ -29,6 +30,7 @@ provider:
           Action:
             - s3:PutObject
             - s3:GetObject
+            - s3:DeleteObject
           Resource:
             - arn:aws:s3:::${self:service}-${sls:stage}-uploads-${aws:accountId}/*
 

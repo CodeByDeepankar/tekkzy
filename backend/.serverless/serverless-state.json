@@ -23,7 +23,8 @@
                 "dynamodb:PutItem",
                 "dynamodb:GetItem",
                 "dynamodb:Query",
-                "dynamodb:Scan"
+                "dynamodb:Scan",
+                "dynamodb:DeleteItem"
               ],
               "Resource": [
                 "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users",
@@ -35,7 +36,8 @@
               "Effect": "Allow",
               "Action": [
                 "s3:PutObject",
-                "s3:GetObject"
+                "s3:GetObject",
+                "s3:DeleteObject"
               ],
               "Resource": "arn:aws:s3:::daily-spend-manager-dev-uploads-542829982435/*"
             }
@@ -143,7 +145,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-                "S3Key": "serverless/daily-spend-manager/dev/1770118790102-2026-02-03T11:39:50.102Z/daily-spend-manager.zip"
+                "S3Key": "serverless/daily-spend-manager/dev/1770138352198-2026-02-03T17:05:52.198Z/daily-spend-manager.zip"
               },
               "Handler": "lambda.handler",
               "Runtime": "nodejs18.x",
@@ -169,14 +171,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersionjICPJzqVpMT4RxRvVRYuuv7uD71567T4HUCDSX5aark": {
+          "ApiLambdaVersioncc7ImcpFVixLZiNyS93qEQTvlQDymZChkC8XG7UMv0o": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "PDVHgNl8POcklY+hA9CexCVBLG4S0PGo1SuyJLyOHQE="
+              "CodeSha256": "LuzDT4hq208njeMAqRJw98RJfNbIRUCo23QYMNnnDN4="
             }
           },
           "ApiGatewayRestApi": {
@@ -394,7 +396,7 @@
               "ApiLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1770118770111": {
+          "ApiGatewayDeployment1770138328088": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -538,7 +540,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersionjICPJzqVpMT4RxRvVRYuuv7uD71567T4HUCDSX5aark"
+              "Ref": "ApiLambdaVersioncc7ImcpFVixLZiNyS93qEQTvlQDymZChkC8XG7UMv0o"
             },
             "Export": {
               "Name": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
@@ -637,7 +639,7 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersionjICPJzqVpMT4RxRvVRYuuv7uD71567T4HUCDSX5aark"
+        "versionLogicalId": "ApiLambdaVersioncc7ImcpFVixLZiNyS93qEQTvlQDymZChkC8XG7UMv0o"
       }
     },
     "resources": {
@@ -753,7 +755,7 @@
     "artifact": "/home/deep/coding/tekkzy/backend/.serverless/daily-spend-manager.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/daily-spend-manager/dev/1770118790102-2026-02-03T11:39:50.102Z",
+    "artifactDirectoryName": "serverless/daily-spend-manager/dev/1770138352198-2026-02-03T17:05:52.198Z",
     "artifact": "daily-spend-manager.zip"
   }
 }
