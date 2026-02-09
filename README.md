@@ -266,7 +266,7 @@ See [LICENSE](LICENSE) for details.
 
 <div align="center">
 
-**Built with ❤️ by the Tekkzy Team**
+**Built with ❤️ by [Deepankar](https://deepankar.tech)**
 
 *Empowering businesses through digital innovation*
 
