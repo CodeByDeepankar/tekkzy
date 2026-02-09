@@ -10,7 +10,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string, userData: User) => void;
+  login: (token: string, userData: User, refreshToken?: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -23,28 +23,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check local storage on mount
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
     
     if (storedToken && storedUser) {
       try {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
       } catch {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('refreshToken');
       }
     }
     setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, userData: User) => {
+  const login = (newToken: string, userData: User, refreshToken?: string) => {
     setToken(newToken);
     setUser(userData);
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    if (refreshToken) {
+      localStorage.setItem('refreshToken', refreshToken);
+    }
   };
 
   const logout = () => {
@@ -52,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('refreshToken');
   };
 
   return (

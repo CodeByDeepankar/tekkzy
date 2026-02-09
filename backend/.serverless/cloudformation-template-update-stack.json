@@ -89,6 +89,22 @@
                     "s3:DeleteObject"
                   ],
                   "Resource": "arn:aws:s3:::daily-spend-manager-dev-uploads-542829982435/*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cognito-idp:AdminGetUser",
+                    "cognito-idp:AdminCreateUser",
+                    "cognito-idp:AdminDeleteUser"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "CognitoUserPool",
+                        "Arn"
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -115,10 +131,10 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-          "S3Key": "serverless/daily-spend-manager/dev/1770140778466-2026-02-03T17:46:18.466Z/daily-spend-manager.zip"
+          "S3Key": "serverless/daily-spend-manager/dev/1770659635488-2026-02-09T17:53:55.488Z/daily-spend-manager.zip"
         },
         "Handler": "lambda.handler",
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "FunctionName": "daily-spend-manager-dev-api",
         "MemorySize": 1024,
         "Timeout": 6,
@@ -127,7 +143,14 @@
             "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
             "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
             "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
-            "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435"
+            "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435",
+            "COGNITO_USER_POOL_ID": {
+              "Ref": "CognitoUserPool"
+            },
+            "COGNITO_CLIENT_ID": {
+              "Ref": "CognitoUserPoolClient"
+            },
+            "COGNITO_REGION": "us-east-1"
           }
         },
         "Role": {
@@ -141,14 +164,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersion17FmNNopbGXHPGQ9sYw5jsboHUwVnnW1duNiDZhkiI": {
+    "ApiLambdaVersionlmcZQFoN6rqJ1Q5CoxDjRzAlqnKjqNuheTbGMbt3Lw": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "h//7CjAJg1bLLCeLw6/YSL26siNSYx3gl2dBGPLVRl8="
+        "CodeSha256": "h20CgvLAkry1+MPyDSGSTLP4SuaGBz6TD/+NcxdLQms="
       }
     },
     "ApiGatewayRestApi": {
@@ -366,7 +389,7 @@
         "ApiLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1770140753717": {
+    "ApiGatewayDeployment1770659610461": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -489,13 +512,69 @@
               ],
               "AllowedMethods": [
                 "PUT",
-                "POST",
-                "GET",
-                "HEAD"
-              ],
-              "MaxAge": 3000
+                "POST"
+              ]
             }
           ]
+        }
+      }
+    },
+    "CognitoUserPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Properties": {
+        "UserPoolName": "daily-spend-manager-dev-user-pool",
+        "UsernameAttributes": [
+          "email"
+        ],
+        "AutoVerifiedAttributes": [
+          "email"
+        ],
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 8,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": false,
+            "RequireUppercase": true
+          }
+        },
+        "Schema": [
+          {
+            "Name": "name",
+            "AttributeDataType": "String",
+            "Mutable": true,
+            "Required": false
+          },
+          {
+            "Name": "email",
+            "AttributeDataType": "String",
+            "Mutable": false,
+            "Required": true
+          }
+        ]
+      }
+    },
+    "CognitoUserPoolClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Properties": {
+        "ClientName": "daily-spend-manager-dev-client",
+        "UserPoolId": {
+          "Ref": "CognitoUserPool"
+        },
+        "GenerateSecret": false,
+        "ExplicitAuthFlows": [
+          "ALLOW_USER_PASSWORD_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH",
+          "ALLOW_USER_SRP_AUTH"
+        ],
+        "PreventUserExistenceErrors": "ENABLED",
+        "AccessTokenValidity": 1,
+        "IdTokenValidity": 1,
+        "RefreshTokenValidity": 30,
+        "TokenValidityUnits": {
+          "AccessToken": "days",
+          "IdToken": "days",
+          "RefreshToken": "days"
         }
       }
     }
@@ -510,7 +589,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersion17FmNNopbGXHPGQ9sYw5jsboHUwVnnW1duNiDZhkiI"
+        "Ref": "ApiLambdaVersionlmcZQFoN6rqJ1Q5CoxDjRzAlqnKjqNuheTbGMbt3Lw"
       },
       "Export": {
         "Name": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
@@ -540,6 +619,22 @@
       },
       "Export": {
         "Name": "sls-daily-spend-manager-dev-ServiceEndpoint"
+      }
+    },
+    "CognitoUserPoolId": {
+      "Value": {
+        "Ref": "CognitoUserPool"
+      },
+      "Export": {
+        "Name": "daily-spend-manager-dev-UserPoolId"
+      }
+    },
+    "CognitoUserPoolClientId": {
+      "Value": {
+        "Ref": "CognitoUserPoolClient"
+      },
+      "Export": {
+        "Name": "daily-spend-manager-dev-UserPoolClientId"
       }
     }
   }

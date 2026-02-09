@@ -1,17 +1,22 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
-const { QueryCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const {
+    CognitoIdentityProviderClient,
+    SignUpCommand,
+    ConfirmSignUpCommand,
+    InitiateAuthCommand,
+    GetUserCommand,
+    ResendConfirmationCodeCommand,
+} = require('@aws-sdk/client-cognito-identity-provider');
+const { PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const { docClient } = require('../config/dynamo');
 
 const USERS_TABLE = process.env.DYNAMODB_USERS_TABLE;
 const USERS_EMAIL_INDEX = process.env.DYNAMODB_USERS_EMAIL_INDEX || 'email-index';
 
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d',
-    });
-};
+const cognitoClient = new CognitoIdentityProviderClient({
+    region: process.env.COGNITO_REGION || process.env.AWS_REGION || 'us-east-1',
+});
+
+const CLIENT_ID = process.env.COGNITO_CLIENT_ID;
 
 const registerUser = async (req, res) => {
     try {
@@ -23,49 +28,87 @@ const registerUser = async (req, res) => {
 
         const normalizedEmail = email.toLowerCase();
 
-        const userExists = await docClient.send(
-            new QueryCommand({
-                TableName: USERS_TABLE,
-                IndexName: USERS_EMAIL_INDEX,
-                KeyConditionExpression: 'email = :email',
-                ExpressionAttributeValues: {
-                    ':email': normalizedEmail
-                },
-                Limit: 1
-            })
-        );
+        const command = new SignUpCommand({
+            ClientId: CLIENT_ID,
+            Username: normalizedEmail,
+            Password: password,
+            UserAttributes: [
+                { Name: 'email', Value: normalizedEmail },
+                { Name: 'name', Value: name },
+            ],
+        });
 
-        if (userExists.Items && userExists.Items.length > 0) {
-            return res.status(400).json({ message: 'User already exists' });
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const passwordHash = await bcrypt.hash(password, salt);
-
-        const userId = uuidv4();
-        const createdAt = new Date().toISOString();
-
-        await docClient.send(
-            new PutCommand({
-                TableName: USERS_TABLE,
-                Item: {
-                    userId,
-                    name,
-                    email: normalizedEmail,
-                    passwordHash,
-                    createdAt
-                },
-                ConditionExpression: 'attribute_not_exists(userId)'
-            })
-        );
+        const result = await cognitoClient.send(command);
 
         res.status(201).json({
-            _id: userId,
-            name,
+            message: 'Registration successful. Please check your email for a verification code.',
+            userSub: result.UserSub,
             email: normalizedEmail,
-            token: generateToken(userId)
+            confirmed: result.UserConfirmed,
         });
     } catch (error) {
+        console.error('Registration error:', error);
+        if (error.name === 'UsernameExistsException') {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+        if (error.name === 'InvalidPasswordException') {
+            return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const confirmUser = async (req, res) => {
+    try {
+        const { email, code } = req.body;
+
+        if (!email || !code) {
+            return res.status(400).json({ message: 'Email and confirmation code are required' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+
+        const command = new ConfirmSignUpCommand({
+            ClientId: CLIENT_ID,
+            Username: normalizedEmail,
+            ConfirmationCode: code,
+        });
+
+        await cognitoClient.send(command);
+
+        res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
+    } catch (error) {
+        console.error('Confirmation error:', error);
+        if (error.name === 'CodeMismatchException') {
+            return res.status(400).json({ message: 'Invalid verification code' });
+        }
+        if (error.name === 'ExpiredCodeException') {
+            return res.status(400).json({ message: 'Verification code has expired. Please request a new one.' });
+        }
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const resendCode = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+
+        const command = new ResendConfirmationCodeCommand({
+            ClientId: CLIENT_ID,
+            Username: normalizedEmail,
+        });
+
+        await cognitoClient.send(command);
+
+        res.status(200).json({ message: 'Verification code resent. Please check your email.' });
+    } catch (error) {
+        console.error('Resend code error:', error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -74,32 +117,75 @@ const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const normalizedEmail = email.toLowerCase();
-        const userResult = await docClient.send(
-            new QueryCommand({
-                TableName: USERS_TABLE,
-                IndexName: USERS_EMAIL_INDEX,
-                KeyConditionExpression: 'email = :email',
-                ExpressionAttributeValues: {
-                    ':email': normalizedEmail
-                },
-                Limit: 1
-            })
-        );
-
-        const user = userResult.Items && userResult.Items[0];
-
-        if (user && (await bcrypt.compare(password, user.passwordHash))) {
-            res.json({
-                _id: user.userId,
-                name: user.name,
-                email: user.email,
-                token: generateToken(user.userId)
-            });
-        } else {
-            res.status(401).json({ message: 'Invalid credentials' });
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Please provide email and password' });
         }
+
+        const normalizedEmail = email.toLowerCase();
+
+        const command = new InitiateAuthCommand({
+            AuthFlow: 'USER_PASSWORD_AUTH',
+            ClientId: CLIENT_ID,
+            AuthParameters: {
+                USERNAME: normalizedEmail,
+                PASSWORD: password,
+            },
+        });
+
+        const result = await cognitoClient.send(command);
+        const { IdToken, AccessToken, RefreshToken } = result.AuthenticationResult;
+
+        // Get user attributes from Cognito
+        const getUserCommand = new GetUserCommand({
+            AccessToken: AccessToken,
+        });
+        const cognitoUser = await cognitoClient.send(getUserCommand);
+        const attributes = {};
+        cognitoUser.UserAttributes.forEach((attr) => {
+            attributes[attr.Name] = attr.Value;
+        });
+
+        // Sync user to DynamoDB for app-specific data
+        const userSub = attributes.sub;
+        try {
+            await docClient.send(
+                new PutCommand({
+                    TableName: USERS_TABLE,
+                    Item: {
+                        userId: userSub,
+                        name: attributes.name || '',
+                        email: normalizedEmail,
+                        lastLogin: new Date().toISOString(),
+                    },
+                    ConditionExpression: 'attribute_not_exists(userId)',
+                })
+            );
+        } catch (putError) {
+            // User already exists in DynamoDB, that's fine
+            if (putError.name !== 'ConditionalCheckFailedException') {
+                console.warn('DynamoDB sync warning:', putError.message);
+            }
+        }
+
+        res.json({
+            _id: userSub,
+            name: attributes.name || '',
+            email: normalizedEmail,
+            token: IdToken,
+            accessToken: AccessToken,
+            refreshToken: RefreshToken,
+        });
     } catch (error) {
+        console.error('Login error:', error);
+        if (error.name === 'NotAuthorizedException') {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        if (error.name === 'UserNotConfirmedException') {
+            return res.status(403).json({
+                message: 'Account not verified. Please check your email for the verification code.',
+                needsConfirmation: true,
+            });
+        }
         res.status(500).json({ message: error.message });
     }
 };
@@ -110,6 +196,8 @@ const getMe = async (req, res) => {
 
 module.exports = {
     registerUser,
+    confirmUser,
+    resendCode,
     loginUser,
-    getMe
+    getMe,
 };

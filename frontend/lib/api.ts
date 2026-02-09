@@ -12,7 +12,36 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Registration failed');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Registration failed');
+      }
+      return res.json();
+    },
+    confirm: async (data: APIPayload) => {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/auth/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Confirmation failed');
+      }
+      return res.json();
+    },
+    resendCode: async (data: APIPayload) => {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/auth/resend-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to resend code');
+      }
       return res.json();
     },
     login: async (data: APIPayload) => {
