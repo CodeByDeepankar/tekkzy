@@ -7,7 +7,7 @@
 ![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![DynamoDB](https://img.shields.io/badge/Amazon_DynamoDB-4053D6?style=for-the-badge&logo=amazon-dynamodb&logoColor=white)
 ![AWS Lambda](https://img.shields.io/badge/AWS_Lambda-FF9900?style=for-the-badge&logo=aws-lambda&logoColor=white)
 
 **Empowering Business Through Digital Innovation**
@@ -55,6 +55,7 @@ Our platform showcases capabilities in:
 | **🔐 JWT Authentication** | Admin panel login for managing internal resources securely |
 | **📱 Fully Responsive** | Looks great on desktop, tablet, and mobile devices |
 | **⚡ Performance Optimized** | Static generation and edge caching for blazing fast load times |
+| **💾 Serverless DynamoDB** | Fully managed NoSQL database with seamless AWS integration |
 
 ---
 
@@ -79,7 +80,8 @@ Our platform showcases capabilities in:
 | [Node.js](https://nodejs.org/) | JavaScript runtime |
 | [Express.js](https://expressjs.com/) | Web framework (Serverless) |
 | [AWS Lambda](https://aws.amazon.com/lambda/) | Serverless compute |
-| [MongoDB](https://www.mongodb.com/) | NoSQL database |
+| [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) | Fully managed NoSQL database |
+| [AWS SDK](https://aws.amazon.com/sdk-for-javascript/) | AWS services integration |
 | [JWT](https://jwt.io/) | Authentication tokens |
 | [Bcrypt](https://bcryptjs.com/) | Password hashing |
 
@@ -91,6 +93,7 @@ Our platform showcases capabilities in:
 | Vercel | Frontend deployment |
 | AWS | Cloud infrastructure |
 | npm | Package management |
+| Serverless Framework | Lambda deployment |
 
 ---
 
@@ -106,9 +109,10 @@ tekkzy/
 │
 ├── backend/                 # Express.js backend API
 │   ├── controllers/        # Route logic
-│   ├── models/            # Database schemas
+│   ├── models/            # DynamoDB schemas
 │   ├── routes/            # API endpoints
 │   ├── middleware/        # Auth & error handling
+│   ├── services/         # DynamoDB service layer
 │   └── ...config files
 │
 ├── .env.example           # Environment variables template
@@ -126,8 +130,8 @@ tekkzy/
 Before you begin, ensure you have:
 
 - **Node.js** v18 or higher
-- **MongoDB Atlas** account (or local MongoDB)
-- **AWS Credentials** (for serverless deployment)
+- **AWS Account** with DynamoDB access
+- **AWS Credentials** (IAM user with DynamoDB permissions)
 - **Git** installed
 
 ### 1️⃣ Clone the Repository
@@ -164,17 +168,20 @@ npm install
 # Create environment file
 cp .env.example .env
 
-# Edit .env with your credentials:
-# - MONGO_URI=your_mongodb_connection_string
+# Edit .env with your AWS credentials:
+# - AWS_REGION=your_aws_region
+# - AWS_ACCESS_KEY_ID=your_aws_access_key
+# - AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+# - DYNAMODB_TABLE_NAME=your_table_name
 # - JWT_SECRET=your_secure_secret_key
-# - AWS_ACCESS_KEY_ID=your_aws_key
-# - AWS_SECRET_ACCESS_KEY=your_aws_secret
 
-# Start the server
+# Start the server (local development)
 npm start
 ```
 
 Backend runs on `http://localhost:5000`
+
+**Note:** For local development, you can use [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) or create a table in AWS DynamoDB.
 
 ---
 
@@ -209,6 +216,18 @@ Strategic digital marketing services to expand your online presence, reach new c
 - Better customer engagement
 - Higher conversion rates
 - Measurable ROI
+
+---
+
+## 💡 Why DynamoDB?
+
+| Feature | Benefit |
+|---------|---------|
+| **Fully Managed** | No server maintenance required |
+| **Scalable** | Handles millions of requests per second |
+| **Low Latency** | Single-digit millisecond response times |
+| **Secure** | Built-in encryption and access controls |
+| **Cost-Effective** | Pay only for what you use |
 
 ---
 
