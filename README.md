@@ -12,7 +12,7 @@
 
 **Empowering Business Through Digital Innovation**
 
-*[Visit Website](https://tekkzy.com)* · *[Report Bug](https://github.com/CodeByDeepankar/tekkzy/issues)* · *[Request Feature](https://github.com/CodeByDeepankar/tekkzy/issues)*
+*[Visit Website](https://tekkzy.netlify.app/)* · *[Report Bug](https://github.com/CodeByDeepankar/tekkzy/issues)* · *[Request Feature](https://github.com/CodeByDeepankar/tekkzy/issues)*
 
 </div>
 
@@ -249,8 +249,8 @@ Please read our [Contributing Guide](CONTRIBUTING.md) for details.
 
 **Tekkzy Intelligent Cloud Applications Pvt. Ltd.**
 
-- 🌐 Website: [tekkzy.com](https://tekkzy.com)
-- 📧 Email: contact@tekkzy.com
+- 🌐 Website: [tekkzy.netlify.app](https://tekkzy.netlify.app/)
+- 📧 Email: contact@tekkzy.netlify.app
 - 💼 LinkedIn: [Tekkzy](https://linkedin.com/company/tekkzy)
 - 🐦 Twitter: [@tekkzy](https://twitter.com/tekkzy)
 
