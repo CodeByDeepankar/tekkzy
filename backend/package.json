@@ -5,7 +5,13 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --verbose --forceExit --detectOpenHandles",
+    "test:coverage": "jest --verbose --forceExit --detectOpenHandles --coverage"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/__tests__/**/*.test.js"],
+    "setupFiles": ["./__tests__/setup.js"]
   },
   "keywords": [],
   "author": "",
@@ -25,7 +31,9 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "jest": "^30.2.0",
     "nodemon": "^3.1.11",
-    "serverless-offline": "^14.4.0"
+    "serverless-offline": "^14.4.0",
+    "supertest": "^7.2.2"
   }
 }

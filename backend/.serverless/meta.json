@@ -1,6 +1,6 @@
 {
   "/home/deep/coding/tekkzy/backend/serverless.yml": {
-    "versionFramework": "4.32.0",
+    "versionFramework": "4.33.0",
     "servicePath": "/home/deep/coding/tekkzy/backend/serverless.yml",
     "serviceConfigFileName": "serverless.yml",
     "service": {
