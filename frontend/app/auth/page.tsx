@@ -170,7 +170,7 @@ export default function AuthPage() {
                     id="confirm-email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="john@company.com"
+                    placeholder="your@email.com"
                     required
                   />
                 </div>
