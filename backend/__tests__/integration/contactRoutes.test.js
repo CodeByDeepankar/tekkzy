@@ -44,6 +44,7 @@ jest.mock('@aws-sdk/lib-dynamodb', () => ({
   GetCommand: jest.fn((p) => p),
   DeleteCommand: jest.fn((p) => p),
   QueryCommand: jest.fn((p) => p),
+  UpdateCommand: jest.fn((p) => p),
 }));
 
 jest.mock('../../config/dynamo', () => ({
@@ -187,6 +188,70 @@ describe('POST /api/contacts', () => {
     const res = await request(app)
       .post('/api/contacts')
       .send(validBody);
+
+    expect(res.status).toBe(401);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// PUT /api/contacts/:id (auth required)
+// ════════════════════════════════════════════════════════════════════════
+describe('PUT /api/contacts/:id', () => {
+  it('should update a contact owned by the user', async () => {
+    const updatedItem = { ...mockContact, service: 'Updated Service', message: 'Updated msg', updatedAt: '2026-02-28T00:00:00Z' };
+    mockDocClientSend
+      .mockResolvedValueOnce({ Item: mockContact })     // GetCommand
+      .mockResolvedValueOnce({ Attributes: updatedItem }); // UpdateCommand
+
+    const res = await request(app)
+      .put(`/api/contacts/${mockContact.contactId}`)
+      .set('Authorization', 'Bearer valid-token')
+      .send({ service: 'Updated Service', message: 'Updated msg' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.service).toBe('Updated Service');
+    expect(res.body.message).toBe('Updated msg');
+  });
+
+  it('should return 400 when no fields to update', async () => {
+    mockDocClientSend.mockResolvedValueOnce({ Item: mockContact });
+
+    const res = await request(app)
+      .put(`/api/contacts/${mockContact.contactId}`)
+      .set('Authorization', 'Bearer valid-token')
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Please provide at least one field to update');
+  });
+
+  it('should return 404 when contact does not exist', async () => {
+    mockDocClientSend.mockResolvedValueOnce({ Item: null });
+
+    const res = await request(app)
+      .put('/api/contacts/nonexistent-id')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ message: 'update' });
+
+    expect(res.status).toBe(404);
+  });
+
+  it('should return 403 when user does not own the contact', async () => {
+    const otherUserContact = { ...mockContact, userId: 'other-user-id' };
+    mockDocClientSend.mockResolvedValueOnce({ Item: otherUserContact });
+
+    const res = await request(app)
+      .put(`/api/contacts/${otherUserContact.contactId}`)
+      .set('Authorization', 'Bearer valid-token')
+      .send({ message: 'hack' });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('should return 401 when not authenticated', async () => {
+    const res = await request(app)
+      .put('/api/contacts/some-id')
+      .send({ message: 'update' });
 
     expect(res.status).toBe(401);
   });

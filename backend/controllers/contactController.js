@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { ScanCommand, PutCommand, GetCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { ScanCommand, PutCommand, GetCommand, DeleteCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
 const { docClient } = require('../config/dynamo');
 const { S3Client, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
@@ -207,9 +207,79 @@ const deleteContact = async (req, res) => {
     }
 };
 
+// @desc    Update contact
+// @route   PUT /api/contacts/:id
+// @access  Private
+const updateContact = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ message: 'Contact id is required' });
+        }
+
+        const existing = await docClient.send(
+            new GetCommand({
+                TableName: CONTACTS_TABLE,
+                Key: { contactId: id }
+            })
+        );
+
+        if (!existing.Item) {
+            return res.status(404).json({ message: 'Message not found' });
+        }
+
+        if (existing.Item.userId !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to update this message' });
+        }
+
+        const { service, message } = req.body;
+
+        if (!service && !message) {
+            return res.status(400).json({ message: 'Please provide at least one field to update' });
+        }
+
+        const updateExpressions = [];
+        const expressionAttributeNames = {};
+        const expressionAttributeValues = {};
+
+        if (service) {
+            updateExpressions.push('#svc = :svc');
+            expressionAttributeNames['#svc'] = 'service';
+            expressionAttributeValues[':svc'] = service;
+        }
+
+        if (message) {
+            updateExpressions.push('#msg = :msg');
+            expressionAttributeNames['#msg'] = 'message';
+            expressionAttributeValues[':msg'] = message;
+        }
+
+        updateExpressions.push('#ua = :ua');
+        expressionAttributeNames['#ua'] = 'updatedAt';
+        expressionAttributeValues[':ua'] = new Date().toISOString();
+
+        const result = await docClient.send(
+            new UpdateCommand({
+                TableName: CONTACTS_TABLE,
+                Key: { contactId: id },
+                UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+                ExpressionAttributeNames: expressionAttributeNames,
+                ExpressionAttributeValues: expressionAttributeValues,
+                ReturnValues: 'ALL_NEW'
+            })
+        );
+
+        res.status(200).json(result.Attributes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getContacts,
     getUserContacts,
     createContact,
+    updateContact,
     deleteContact
 };

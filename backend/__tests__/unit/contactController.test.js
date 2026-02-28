@@ -28,6 +28,7 @@ jest.mock('@aws-sdk/lib-dynamodb', () => ({
   PutCommand: jest.fn((params) => ({ _type: 'Put', ...params })),
   GetCommand: jest.fn((params) => ({ _type: 'Get', ...params })),
   DeleteCommand: jest.fn((params) => ({ _type: 'Delete', ...params })),
+  UpdateCommand: jest.fn((params) => ({ _type: 'Update', ...params })),
 }));
 
 jest.mock('../../config/dynamo', () => ({
@@ -63,6 +64,7 @@ const {
   getContacts,
   getUserContacts,
   createContact,
+  updateContact,
   deleteContact,
 } = require('../../controllers/contactController');
 
@@ -258,6 +260,110 @@ describe('createContact', () => {
     const res = buildRes();
 
     await createContact(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// updateContact
+// ════════════════════════════════════════════════════════════════════════
+describe('updateContact', () => {
+  it('should update service and message and return updated contact', async () => {
+    // GetCommand returns existing contact
+    mockDocClientSend.mockResolvedValueOnce({ Item: mockContact });
+    // UpdateCommand returns updated attributes
+    const updatedItem = { ...mockContact, service: 'Updated Service', message: 'Updated message', updatedAt: '2026-02-28T00:00:00Z' };
+    mockDocClientSend.mockResolvedValueOnce({ Attributes: updatedItem });
+
+    const req = buildReq(
+      { service: 'Updated Service', message: 'Updated message' },
+      { id: mockContact.contactId }
+    );
+    const res = buildRes();
+
+    await updateContact(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(updatedItem);
+  });
+
+  it('should update only service when message is not provided', async () => {
+    mockDocClientSend.mockResolvedValueOnce({ Item: mockContact });
+    const updatedItem = { ...mockContact, service: 'New Service', updatedAt: '2026-02-28T00:00:00Z' };
+    mockDocClientSend.mockResolvedValueOnce({ Attributes: updatedItem });
+
+    const req = buildReq({ service: 'New Service' }, { id: mockContact.contactId });
+    const res = buildRes();
+
+    await updateContact(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(updatedItem);
+  });
+
+  it('should update only message when service is not provided', async () => {
+    mockDocClientSend.mockResolvedValueOnce({ Item: mockContact });
+    const updatedItem = { ...mockContact, message: 'New message', updatedAt: '2026-02-28T00:00:00Z' };
+    mockDocClientSend.mockResolvedValueOnce({ Attributes: updatedItem });
+
+    const req = buildReq({ message: 'New message' }, { id: mockContact.contactId });
+    const res = buildRes();
+
+    await updateContact(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(updatedItem);
+  });
+
+  it('should return 400 when no fields to update are provided', async () => {
+    mockDocClientSend.mockResolvedValueOnce({ Item: mockContact });
+
+    const req = buildReq({}, { id: mockContact.contactId });
+    const res = buildRes();
+
+    await updateContact(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Please provide at least one field to update',
+    });
+  });
+
+  it('should return 404 when contact not found', async () => {
+    mockDocClientSend.mockResolvedValueOnce({ Item: null });
+
+    const req = buildReq({ service: 'X' }, { id: 'nonexistent-id' });
+    const res = buildRes();
+
+    await updateContact(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Message not found' });
+  });
+
+  it('should return 403 when user does not own the contact', async () => {
+    const otherContact = { ...mockContact, userId: 'other-user-id' };
+    mockDocClientSend.mockResolvedValueOnce({ Item: otherContact });
+
+    const req = buildReq({ message: 'hack' }, { id: otherContact.contactId });
+    const res = buildRes();
+
+    await updateContact(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Not authorized to update this message',
+    });
+  });
+
+  it('should return 500 on DynamoDB error', async () => {
+    mockDocClientSend.mockRejectedValueOnce(new Error('Update failed'));
+
+    const req = buildReq({ service: 'X' }, { id: 'some-id' });
+    const res = buildRes();
+
+    await updateContact(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
   });

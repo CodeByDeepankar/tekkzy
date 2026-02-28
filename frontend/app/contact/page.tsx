@@ -25,6 +25,9 @@ export default function Contact() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ service: string; message: string }>({ service: '', message: '' });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const { isAuthenticated, token } = useAuth();
 
   const fetchMessages = async () => {
@@ -188,6 +191,52 @@ export default function Contact() {
     }
   };
 
+  const handleStartEdit = (msg: ContactMessage) => {
+    setEditingId(msg.contactId);
+    setEditForm({ service: msg.service, message: msg.message });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditForm({ service: '', message: '' });
+  };
+
+  const handleSaveEdit = async (contactId: string) => {
+    if (!token) return;
+
+    try {
+        if (!API_BASE_URL) {
+            throw new Error('API base URL is not configured');
+        }
+
+        setIsSavingEdit(true);
+
+        const response = await fetch(`${API_BASE_URL}/api/contacts/${contactId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(editForm)
+        });
+
+        if (response.ok) {
+            setEditingId(null);
+            setEditForm({ service: '', message: '' });
+            fetchMessages();
+        } else {
+            const errorBody = await response.json().catch(() => ({}));
+            throw new Error(errorBody.message || 'Failed to update message');
+        }
+    } catch (error) {
+        console.error('Error updating message:', error);
+        const message = error instanceof Error ? error.message : 'Unable to update the message.';
+        alert(message);
+    } finally {
+        setIsSavingEdit(false);
+    }
+  };
+
   return (
     <main>
         <section className="section-header" style={{marginTop: '60px'}}>
@@ -315,25 +364,82 @@ export default function Contact() {
                                                       border: '1px solid var(--border-color)',
                                                       borderRadius: '14px',
                                                       padding: '16px',
-                                                      background: 'var(--bg-white)'
+                                                      background: 'var(--card)'
                                                   }}
                                               >
-                                                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-                                                      <div>
-                                                          <h5 style={{ marginBottom: '6px' }}>{msg.service}</h5>
-                                                          <p style={{ color: 'var(--text-light)', marginBottom: '10px' }}>{msg.message}</p>
-                                                          <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{msg.submitted}</span>
+                                                  {editingId === msg.contactId ? (
+                                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                          <div className="form-group" style={{ margin: 0 }}>
+                                                              <label htmlFor={`edit-service-${msg.contactId}`} style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Service</label>
+                                                              <select
+                                                                  id={`edit-service-${msg.contactId}`}
+                                                                  value={editForm.service}
+                                                                  onChange={(e) => setEditForm((prev) => ({ ...prev, service: e.target.value }))}
+                                                              >
+                                                                  <option value="">Select a service...</option>
+                                                                  <option value="custom cloud software">Custom Cloud Software</option>
+                                                                  <option value="business automation">Business Automation</option>
+                                                                  <option value="digital marketing">Digital Marketing</option>
+                                                                  <option value="general consultation">General Consultation</option>
+                                                                  <option value="other">Other</option>
+                                                              </select>
+                                                          </div>
+                                                          <div className="form-group" style={{ margin: 0 }}>
+                                                              <label htmlFor={`edit-message-${msg.contactId}`} style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Message</label>
+                                                              <textarea
+                                                                  id={`edit-message-${msg.contactId}`}
+                                                                  rows={3}
+                                                                  value={editForm.message}
+                                                                  onChange={(e) => setEditForm((prev) => ({ ...prev, message: e.target.value }))}
+                                                              />
+                                                          </div>
+                                                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                              <button
+                                                                  type="button"
+                                                                  className="btn btn-outline"
+                                                                  onClick={handleCancelEdit}
+                                                                  disabled={isSavingEdit}
+                                                              >
+                                                                  Cancel
+                                                              </button>
+                                                              <button
+                                                                  type="button"
+                                                                  className="btn btn-primary"
+                                                                  onClick={() => handleSaveEdit(msg.contactId)}
+                                                                  disabled={isSavingEdit}
+                                                              >
+                                                                  {isSavingEdit ? 'Saving...' : 'Save'}
+                                                              </button>
+                                                          </div>
                                                       </div>
-                                                      <button
-                                                          type="button"
-                                                          className="btn btn-outline"
-                                                          onClick={() => handleDelete(msg.contactId)}
-                                                          disabled={deletingId === msg.contactId}
-                                                          style={{ whiteSpace: 'nowrap' }}
-                                                      >
-                                                          {deletingId === msg.contactId ? 'Deleting...' : 'Delete'}
-                                                      </button>
-                                                  </div>
+                                                  ) : (
+                                                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                                                          <div>
+                                                              <h5 style={{ marginBottom: '6px', color: '#f8fafc' }}>{msg.service}</h5>
+                                                              <p style={{ color: 'var(--text-main)', marginBottom: '10px' }}>{msg.message}</p>
+                                                              <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{msg.submitted}</span>
+                                                          </div>
+                                                          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                                                              <button
+                                                                  type="button"
+                                                                  className="btn btn-outline"
+                                                                  onClick={() => handleStartEdit(msg)}
+                                                                  style={{ whiteSpace: 'nowrap' }}
+                                                              >
+                                                                  Edit
+                                                              </button>
+                                                              <button
+                                                                  type="button"
+                                                                  className="btn btn-outline"
+                                                                  onClick={() => handleDelete(msg.contactId)}
+                                                                  disabled={deletingId === msg.contactId}
+                                                                  style={{ whiteSpace: 'nowrap' }}
+                                                              >
+                                                                  {deletingId === msg.contactId ? 'Deleting...' : 'Delete'}
+                                                              </button>
+                                                          </div>
+                                                      </div>
+                                                  )}
                                               </div>
                                           ))}
                                       </div>

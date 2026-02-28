@@ -73,7 +73,8 @@
                     "dynamodb:GetItem",
                     "dynamodb:Query",
                     "dynamodb:Scan",
-                    "dynamodb:DeleteItem"
+                    "dynamodb:DeleteItem",
+                    "dynamodb:UpdateItem"
                   ],
                   "Resource": [
                     "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users",
@@ -131,7 +132,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-          "S3Key": "serverless/daily-spend-manager/dev/1770659635488-2026-02-09T17:53:55.488Z/daily-spend-manager.zip"
+          "S3Key": "serverless/daily-spend-manager/dev/1772304705648-2026-02-28T18:51:45.648Z/daily-spend-manager.zip"
         },
         "Handler": "lambda.handler",
         "Runtime": "nodejs20.x",
@@ -164,14 +165,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersionlmcZQFoN6rqJ1Q5CoxDjRzAlqnKjqNuheTbGMbt3Lw": {
+    "ApiLambdaVersionfadS9xdIrMV2gjll1X632QKyfK6DqMYmcYvmu2xMU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "h20CgvLAkry1+MPyDSGSTLP4SuaGBz6TD/+NcxdLQms="
+        "CodeSha256": "tPbckkoeHU4dtKKrGvoF6UDXbxItRyHqOjCKIv4nvH8="
       }
     },
     "ApiGatewayRestApi": {
@@ -389,7 +390,7 @@
         "ApiLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1770659610461": {
+    "ApiGatewayDeployment1772304683630": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -589,7 +590,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersionlmcZQFoN6rqJ1Q5CoxDjRzAlqnKjqNuheTbGMbt3Lw"
+        "Ref": "ApiLambdaVersionfadS9xdIrMV2gjll1X632QKyfK6DqMYmcYvmu2xMU"
       },
       "Export": {
         "Name": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
