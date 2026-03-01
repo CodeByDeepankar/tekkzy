@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { API_BASE_URL } from '@/lib/api';
+import { api } from '@/lib/api';
 
 const CHATBOT_API = 'https://deepbot-backend.vercel.app/api/v1/chat';
 
@@ -51,20 +51,15 @@ export default function ChatBot() {
 
   // Fetch user activity from AWS backend
   const fetchUserActivity = useCallback(async () => {
-    if (!token || !API_BASE_URL) return;
+    if (!token) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/contacts/mine`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const data = await api.contacts.mine(token);
+      const contacts = Array.isArray(data) ? data : data.contacts || [];
+      const services = [...new Set(contacts.map((c: { service?: string }) => c.service).filter(Boolean))] as string[];
+      setUserActivity({
+        contactRequests: contacts.length,
+        recentServices: services.slice(0, 5),
       });
-      if (res.ok) {
-        const data = await res.json();
-        const contacts = Array.isArray(data) ? data : data.contacts || [];
-        const services = [...new Set(contacts.map((c: { service?: string }) => c.service).filter(Boolean))] as string[];
-        setUserActivity({
-          contactRequests: contacts.length,
-          recentServices: services.slice(0, 5),
-        });
-      }
     } catch (err) {
       console.error('Failed to fetch user activity:', err);
     }

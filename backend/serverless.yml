@@ -51,13 +51,60 @@ functions:
   api:
     handler: lambda.handler
     events:
+      # Root
       - http:
           path: /
-          method: ANY
+          method: GET
+          cors: true
+
+      # Auth routes
+      - http:
+          path: /api/auth/register
+          method: POST
           cors: true
       - http:
-          path: /{proxy+}
-          method: ANY
+          path: /api/auth/confirm
+          method: POST
+          cors: true
+      - http:
+          path: /api/auth/resend-code
+          method: POST
+          cors: true
+      - http:
+          path: /api/auth/login
+          method: POST
+          cors: true
+      - http:
+          path: /api/auth/me
+          method: GET
+          cors: true
+
+      # Contact routes
+      - http:
+          path: /api/contacts
+          method: GET
+          cors: true
+      - http:
+          path: /api/contacts/mine
+          method: GET
+          cors: true
+      - http:
+          path: /api/contacts
+          method: POST
+          cors: true
+      - http:
+          path: /api/contacts/{id}
+          method: PUT
+          cors: true
+      - http:
+          path: /api/contacts/{id}
+          method: DELETE
+          cors: true
+
+      # Upload routes
+      - http:
+          path: /api/uploads/presign
+          method: POST
           cors: true
 
 plugins:

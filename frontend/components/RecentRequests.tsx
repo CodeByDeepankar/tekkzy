@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Code } from 'lucide-react';
 import Carousel from './Carousel';
-import { API_BASE_URL } from '@/lib/api';
+import { api } from '@/lib/api';
 
 interface ContactRequest {
   name: string;
@@ -21,17 +21,10 @@ export default function RecentRequests() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        if (!API_BASE_URL) {
-          throw new Error('API base URL is not configured');
-        }
-
-        const response = await fetch(`${API_BASE_URL}/api/contacts`);
-        if (response.ok) {
-           const data = await response.json();
-           console.log('RecentRequests API Data:', data);
-           if (Array.isArray(data)) {
-               setRequests(data);
-           }
+        const data = await api.contacts.list();
+        console.log('RecentRequests API Data:', data);
+        if (Array.isArray(data)) {
+          setRequests(data);
         }
       } catch (error) {
         console.error("Failed to fetch requests", error);

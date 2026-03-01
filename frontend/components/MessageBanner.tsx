@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { API_BASE_URL } from "@/lib/api";
+import { api } from "@/lib/api";
 
 interface ContactRequest {
   name: string;
@@ -26,16 +26,9 @@ export default function MessageBanner() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        if (!API_BASE_URL) {
-          throw new Error("API base URL is not configured");
-        }
-
-        const response = await fetch(`${API_BASE_URL}/api/contacts`);
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data)) {
-            setRequests(data.slice(0, 3));
-          }
+        const data = await api.contacts.list();
+        if (Array.isArray(data)) {
+          setRequests(data.slice(0, 3));
         }
       } catch (error) {
         console.error("Failed to fetch requests", error);

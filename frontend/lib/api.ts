@@ -59,58 +59,82 @@ export const api = {
       return res.json();
     },
   },
-  expenses: {
-    list: async (token: string) => {
+  contacts: {
+    list: async () => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/expenses`, {
+      const res = await fetch(`${API_BASE_URL}/api/contacts`);
+      if (!res.ok) throw new Error('Failed to fetch contacts');
+      return res.json();
+    },
+    mine: async (token: string) => {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/contacts/mine`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error('Failed to fetch expenses');
+      if (!res.ok) throw new Error('Failed to fetch your contacts');
       return res.json();
     },
     create: async (token: string, data: APIPayload) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/expenses`, {
+      const res = await fetch(`${API_BASE_URL}/api/contacts`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
       if (!res.ok) {
-        const errorText = await res.text();
-        console.error('Create Expense Error:', errorText);
-        try {
-            const errorJson = JSON.parse(errorText);
-            throw new Error(errorJson.message || 'Failed to create expense');
-        } catch {
-            throw new Error(`Failed to create expense: ${res.statusText}`);
-        }
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to create contact');
       }
       return res.json();
     },
     update: async (token: string, id: string, data: APIPayload) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/expenses/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/contacts/${id}`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Failed to update expense');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update contact');
+      }
       return res.json();
     },
     delete: async (token: string, id: string) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/expenses/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/contacts/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error('Failed to delete expense');
-      return res.json(); // May return success message or empty
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete contact');
+      }
+      return res.json();
+    },
+  },
+  uploads: {
+    presign: async (token: string, data: APIPayload) => {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/uploads/presign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to get upload URL');
+      }
+      return res.json();
     },
   },
 };

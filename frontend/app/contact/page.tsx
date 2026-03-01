@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { API_BASE_URL } from '@/lib/api';
+import { api } from '@/lib/api';
 
 interface ContactMessage {
     contactId: string;
@@ -37,28 +37,14 @@ export default function Contact() {
     }
 
     try {
-        if (!API_BASE_URL) {
-            throw new Error('API base URL is not configured');
-        }
-
         setMessagesLoading(true);
         setMessagesError(null);
 
-        const response = await fetch(`${API_BASE_URL}/api/contacts/mine`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            if (Array.isArray(data)) {
-                setMessages(data);
-            } else {
-                setMessages([]);
-            }
+        const data = await api.contacts.mine(token);
+        if (Array.isArray(data)) {
+            setMessages(data);
         } else {
-            throw new Error('Failed to load messages');
+            setMessages([]);
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to load messages';
@@ -87,32 +73,14 @@ export default function Contact() {
     };
     
     try {
-        if (!API_BASE_URL) {
-            throw new Error('API base URL is not configured');
-        }
-
         if (imageFile) {
             setIsUploading(true);
             setUploadError(null);
 
-            const presignResponse = await fetch(`${API_BASE_URL}/api/uploads/presign`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    fileName: imageFile.name,
-                    contentType: imageFile.type
-                })
+            const { uploadUrl, key } = await api.uploads.presign(token!, {
+                fileName: imageFile.name,
+                contentType: imageFile.type
             });
-
-            if (!presignResponse.ok) {
-                const err = await presignResponse.json().catch(() => ({}));
-                throw new Error(err.message || 'Failed to get upload URL');
-            }
-
-            const { uploadUrl, key } = await presignResponse.json();
 
             const uploadResponse = await fetch(uploadUrl, {
                 method: 'PUT',
@@ -129,25 +97,12 @@ export default function Contact() {
             submitData.imageKey = key;
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/contacts`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(submitData)
-        });
-
-        if (response.ok) {
-            alert('Thank you for contacting Tekkzy! We have received your message and will get back to you shortly.');
-            form.reset();
-            setImageFile(null);
-            setUploadPreview(null);
-            fetchMessages();
-        } else {
-            console.error('Submission failed');
-            alert('Something went wrong. Please try again.');
-        }
+        await api.contacts.create(token!, submitData);
+        alert('Thank you for contacting Tekkzy! We have received your message and will get back to you shortly.');
+        form.reset();
+        setImageFile(null);
+        setUploadPreview(null);
+        fetchMessages();
     } catch (error) {
         console.error('Error submitting contact form:', error);
         const message = error instanceof Error ? error.message : 'Failed to send message';
@@ -163,25 +118,10 @@ export default function Contact() {
     if (!token) return;
 
     try {
-        if (!API_BASE_URL) {
-            throw new Error('API base URL is not configured');
-        }
-
         setDeletingId(contactId);
 
-        const response = await fetch(`${API_BASE_URL}/api/contacts/${contactId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            setMessages((prev) => prev.filter((item) => item.contactId !== contactId));
-        } else {
-            const errorBody = await response.json().catch(() => ({}));
-            throw new Error(errorBody.message || 'Failed to delete message');
-        }
+        await api.contacts.delete(token, contactId);
+        setMessages((prev) => prev.filter((item) => item.contactId !== contactId));
     } catch (error) {
         console.error('Error deleting message:', error);
         const message = error instanceof Error ? error.message : 'Unable to delete the message.';
@@ -205,29 +145,12 @@ export default function Contact() {
     if (!token) return;
 
     try {
-        if (!API_BASE_URL) {
-            throw new Error('API base URL is not configured');
-        }
-
         setIsSavingEdit(true);
 
-        const response = await fetch(`${API_BASE_URL}/api/contacts/${contactId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(editForm)
-        });
-
-        if (response.ok) {
-            setEditingId(null);
-            setEditForm({ service: '', message: '' });
-            fetchMessages();
-        } else {
-            const errorBody = await response.json().catch(() => ({}));
-            throw new Error(errorBody.message || 'Failed to update message');
-        }
+        await api.contacts.update(token, contactId, editForm);
+        setEditingId(null);
+        setEditForm({ service: '', message: '' });
+        fetchMessages();
     } catch (error) {
         console.error('Error updating message:', error);
         const message = error instanceof Error ? error.message : 'Unable to update the message.';
