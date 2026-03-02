@@ -75,6 +75,14 @@ functions:
           method: POST
           cors: true
       - http:
+          path: /api/auth/forgot-password
+          method: POST
+          cors: true
+      - http:
+          path: /api/auth/confirm-forgot-password
+          method: POST
+          cors: true
+      - http:
           path: /api/auth/me
           method: GET
           cors: true

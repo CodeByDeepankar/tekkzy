@@ -1,0 +1,17 @@
+{
+  "httpMethod": "POST",
+  "path": "/api/contacts",
+  "headers": {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer d47814b8-d031-70d2-a829-2559a89f2546"
+  },
+  "queryStringParameters": null,
+  "pathParameters": null,
+  "body": "{\"name\":\"Jane Smith\",\"email\":\"jane@example.com\",\"service\":\"Web Development\",\"message\":\"I need a new website built for my business.\"}",
+  "isBase64Encoded": false,
+  "requestContext": {
+    "stage": "dev",
+    "resourcePath": "/api/contacts",
+    "httpMethod": "POST"
+  }
+}

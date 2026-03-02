@@ -58,6 +58,32 @@ export const api = {
       }
       return res.json();
     },
+    forgotPassword: async (data: APIPayload) => {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to send reset code');
+      }
+      return res.json();
+    },
+    confirmForgotPassword: async (data: APIPayload) => {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await fetch(`${API_BASE_URL}/api/auth/confirm-forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to reset password');
+      }
+      return res.json();
+    },
   },
   contacts: {
     list: async () => {

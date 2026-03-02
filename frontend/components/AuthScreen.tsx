@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Eye, EyeOff } from 'lucide-react';
 
-type AuthView = 'login' | 'register' | 'confirm';
+type AuthView = 'login' | 'register' | 'confirm' | 'forgot-password' | 'reset-password';
 
 export function AuthScreen() {
   const [view, setView] = useState<AuthView>('login');
@@ -22,6 +23,10 @@ export function AuthScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmationCode, setConfirmationCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,11 +115,51 @@ export function AuthScreen() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    setLoading(true);
+
+    try {
+      const res = await api.auth.forgotPassword({ email });
+      setSuccessMsg(res.message || 'Reset code sent. Check your email.');
+      setView('reset-password');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to send reset code';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    setLoading(true);
+
+    try {
+      const res = await api.auth.confirmForgotPassword({ email, code: resetCode, newPassword });
+      setSuccessMsg(res.message || 'Password reset successful. You can now sign in.');
+      setNewPassword('');
+      setResetCode('');
+      setView('login');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to reset password';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getTitle = () => {
     switch (view) {
       case 'login': return 'Welcome Back';
       case 'register': return 'Create Account';
       case 'confirm': return 'Verify Email';
+      case 'forgot-password': return 'Forgot Password';
+      case 'reset-password': return 'Reset Password';
     }
   };
 
@@ -123,6 +168,8 @@ export function AuthScreen() {
       case 'login': return 'Enter your credentials to access your account';
       case 'register': return 'Enter your information to create an account';
       case 'confirm': return 'Enter the verification code sent to your email';
+      case 'forgot-password': return 'Enter your email to receive a password reset code';
+      case 'reset-password': return 'Enter the reset code and your new password';
     }
   };
 
@@ -207,6 +254,86 @@ export function AuthScreen() {
                           </button>
                         </div>
                       </form>
+                    ) : view === 'forgot-password' ? (
+                      <form onSubmit={handleForgotPassword} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="forgot-email">Email Address</Label>
+                          <Input
+                            id="forgot-email"
+                            type="email"
+                            placeholder="john@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <Button type="submit" disabled={loading} className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+                          {loading ? 'Sending...' : 'Send Reset Code'}
+                        </Button>
+                      </form>
+                    ) : view === 'reset-password' ? (
+                      <form onSubmit={handleResetPassword} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="reset-email">Email Address</Label>
+                          <Input
+                            id="reset-email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="reset-code">Reset Code</Label>
+                          <Input
+                            id="reset-code"
+                            type="text"
+                            placeholder="123456"
+                            value={resetCode}
+                            onChange={(e) => setResetCode(e.target.value)}
+                            required
+                            autoComplete="one-time-code"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="new-password">New Password</Label>
+                          <div className="relative">
+                            <Input
+                              id="new-password"
+                              type={showNewPassword ? 'text' : 'password'}
+                              placeholder="••••••••"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              required
+                              className="pr-10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Min 8 characters, uppercase, lowercase, and number required.
+                          </p>
+                        </div>
+                        <Button type="submit" disabled={loading} className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+                          {loading ? 'Resetting...' : 'Reset Password'}
+                        </Button>
+                        <div className="text-center">
+                          <button
+                            type="button"
+                            onClick={() => { setView('forgot-password'); setError(''); setSuccessMsg(''); }}
+                            disabled={loading}
+                            className="text-sm font-medium text-emerald-500 hover:text-emerald-400 transition-colors hover:underline"
+                          >
+                            Resend Code
+                          </button>
+                        </div>
+                      </form>
                     ) : (
                       <form onSubmit={view === 'login' ? handleLogin : handleRegister} className="space-y-4">
                         {view === 'register' && (
@@ -237,20 +364,43 @@ export function AuthScreen() {
 
                         <div className="space-y-2">
                           <Label htmlFor="password">Password</Label>
-                          <Input
-                            id="password"
-                            type="password"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                          />
+                          <div className="relative">
+                            <Input
+                              id="password"
+                              type={showPassword ? 'text' : 'password'}
+                              placeholder="••••••••"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              required
+                              className="pr-10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
                           {view === 'register' && (
                             <p className="text-xs text-muted-foreground">
                               Min 8 characters, uppercase, lowercase, and number required.
                             </p>
                           )}
                         </div>
+
+                        {view === 'login' && (
+                          <div className="text-right">
+                            <button
+                              type="button"
+                              onClick={() => { setView('forgot-password'); setError(''); setSuccessMsg(''); }}
+                              className="text-sm font-medium text-emerald-500 hover:text-emerald-400 transition-colors hover:underline"
+                            >
+                              Forgot Password?
+                            </button>
+                          </div>
+                        )}
 
                         <Button type="submit" disabled={loading} className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
                           {loading ? 'Processing...' : (view === 'login' ? 'Sign In' : 'Create Account')}
@@ -268,6 +418,16 @@ export function AuthScreen() {
                               className="font-medium text-emerald-500 hover:text-emerald-400 transition-colors hover:underline"
                             >
                               Sign in
+                            </button>
+                          </>
+                        ) : view === 'forgot-password' || view === 'reset-password' ? (
+                          <>
+                            Remember your password?{' '}
+                            <button
+                              onClick={() => { setView('login'); setError(''); setSuccessMsg(''); }}
+                              className="font-medium text-emerald-500 hover:text-emerald-400 transition-colors hover:underline"
+                            >
+                              Back to Sign in
                             </button>
                           </>
                         ) : (

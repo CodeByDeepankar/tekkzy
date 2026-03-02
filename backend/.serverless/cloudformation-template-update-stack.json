@@ -132,7 +132,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-          "S3Key": "serverless/daily-spend-manager/dev/1772348907875-2026-03-01T07:08:27.875Z/daily-spend-manager.zip"
+          "S3Key": "serverless/daily-spend-manager/dev/1772448742073-2026-03-02T10:52:22.073Z/daily-spend-manager.zip"
         },
         "Handler": "lambda.handler",
         "Runtime": "nodejs20.x",
@@ -165,14 +165,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersiondPh8MDgCkPw5yGnKO7xtDI3PkMGkuf17PmCV9jfK3CY": {
+    "ApiLambdaVersionbT43eHXk6MNpp5QpHArz0ig0y7OemtFZWVHrdLjag": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "MqPp7ltkx0BVDkmrhRYnkJugC1KdHIu1Uo6rhN4lvJ4="
+        "CodeSha256": "tdVHFbBb5Yjbt3PDSrVZvcEzpC8NKgd5iD3Irr1jWPA="
       }
     },
     "ApiGatewayRestApi": {
@@ -257,6 +257,30 @@
           "Ref": "ApiGatewayResourceApiAuth"
         },
         "PathPart": "login",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceApiAuthForgotDashpassword": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceApiAuth"
+        },
+        "PathPart": "forgot-password",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceApiAuthConfirmDashforgotDashpassword": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceApiAuth"
+        },
+        "PathPart": "confirm-forgot-password",
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
@@ -556,6 +580,96 @@
         },
         "ResourceId": {
           "Ref": "ApiGatewayResourceApiAuthLogin"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodApiAuthForgotDashpasswordOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceApiAuthForgotDashpassword"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodApiAuthConfirmDashforgotDashpasswordOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceApiAuthConfirmDashforgotDashpassword"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
@@ -1020,6 +1134,98 @@
         "ApiLambdaPermissionApiGateway"
       ]
     },
+    "ApiGatewayMethodApiAuthForgotDashpasswordPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceApiAuthForgotDashpassword"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "ApiLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "ApiLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodApiAuthConfirmDashforgotDashpasswordPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceApiAuthConfirmDashforgotDashpassword"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "ApiLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "ApiLambdaPermissionApiGateway"
+      ]
+    },
     "ApiGatewayMethodApiAuthMeGet": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
@@ -1342,7 +1548,7 @@
         "ApiLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1772348864547": {
+    "ApiGatewayDeployment1772448722255": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -1356,6 +1562,8 @@
         "ApiGatewayMethodApiAuthConfirmOptions",
         "ApiGatewayMethodApiAuthResendDashcodeOptions",
         "ApiGatewayMethodApiAuthLoginOptions",
+        "ApiGatewayMethodApiAuthForgotDashpasswordOptions",
+        "ApiGatewayMethodApiAuthConfirmDashforgotDashpasswordOptions",
         "ApiGatewayMethodApiAuthMeOptions",
         "ApiGatewayMethodApiContactsOptions",
         "ApiGatewayMethodApiContactsMineOptions",
@@ -1366,6 +1574,8 @@
         "ApiGatewayMethodApiAuthConfirmPost",
         "ApiGatewayMethodApiAuthResendDashcodePost",
         "ApiGatewayMethodApiAuthLoginPost",
+        "ApiGatewayMethodApiAuthForgotDashpasswordPost",
+        "ApiGatewayMethodApiAuthConfirmDashforgotDashpasswordPost",
         "ApiGatewayMethodApiAuthMeGet",
         "ApiGatewayMethodApiContactsGet",
         "ApiGatewayMethodApiContactsMineGet",
@@ -1560,7 +1770,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersiondPh8MDgCkPw5yGnKO7xtDI3PkMGkuf17PmCV9jfK3CY"
+        "Ref": "ApiLambdaVersionbT43eHXk6MNpp5QpHArz0ig0y7OemtFZWVHrdLjag"
       },
       "Export": {
         "Name": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"

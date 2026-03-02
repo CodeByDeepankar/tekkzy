@@ -1,0 +1,19 @@
+{
+  "httpMethod": "DELETE",
+  "path": "/api/contacts/CONTACT_ID_HERE",
+  "headers": {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer d47814b8-d031-70d2-a829-2559a89f2546"
+  },
+  "queryStringParameters": null,
+  "pathParameters": {
+    "id": "CONTACT_ID_HERE"
+  },
+  "body": null,
+  "isBase64Encoded": false,
+  "requestContext": {
+    "stage": "dev",
+    "resourcePath": "/api/contacts/{id}",
+    "httpMethod": "DELETE"
+  }
+}

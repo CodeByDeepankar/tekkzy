@@ -4,8 +4,9 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 
-type AuthView = 'login' | 'register' | 'confirm';
+type AuthView = 'login' | 'register' | 'confirm' | 'forgot-password' | 'reset-password';
 
 export default function AuthPage() {
   const [view, setView] = useState<AuthView>('login');
@@ -19,6 +20,10 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmationCode, setConfirmationCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +116,44 @@ export default function AuthPage() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    setLoading(true);
+
+    try {
+      const res = await api.auth.forgotPassword({ email });
+      setSuccessMsg(res.message || 'Reset code sent. Check your email.');
+      setView('reset-password');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to send reset code';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    setLoading(true);
+
+    try {
+      const res = await api.auth.confirmForgotPassword({ email, code: resetCode, newPassword });
+      setSuccessMsg(res.message || 'Password reset successful. You can now sign in.');
+      setNewPassword('');
+      setResetCode('');
+      setView('login');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to reset password';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderAlert = () => (
     <>
       {error && (
@@ -148,11 +191,15 @@ export default function AuthPage() {
           {view === 'login' && 'Welcome Back'}
           {view === 'register' && 'Join Tekkzy'}
           {view === 'confirm' && 'Verify Your Email'}
+          {view === 'forgot-password' && 'Forgot Password'}
+          {view === 'reset-password' && 'Reset Password'}
         </h2>
         <p>
           {view === 'login' && 'Sign in to access exclusive features.'}
           {view === 'register' && 'Create an account to get started.'}
           {view === 'confirm' && 'Enter the verification code sent to your email.'}
+          {view === 'forgot-password' && 'Enter your email to receive a password reset code.'}
+          {view === 'reset-password' && 'Enter the reset code and your new password.'}
         </p>
       </section>
 
@@ -234,6 +281,158 @@ export default function AuthPage() {
                   </button>
                 </div>
               </form>
+            ) : view === 'forgot-password' ? (
+              <form onSubmit={handleForgotPassword}>
+                <div className="form-group">
+                  <label htmlFor="forgot-email">Email Address</label>
+                  <input
+                    type="email"
+                    id="forgot-email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ width: '100%', marginTop: '10px' }}
+                  disabled={loading}
+                >
+                  {loading ? 'Sending...' : 'Send Reset Code'}
+                </button>
+
+                <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.95rem', color: 'var(--text-light)' }}>
+                  Remember your password?{' '}
+                  <button
+                    type="button"
+                    onClick={() => { setView('login'); setError(''); setSuccessMsg(''); }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--secondary-color)',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    Back to Sign in
+                  </button>
+                </div>
+              </form>
+            ) : view === 'reset-password' ? (
+              <form onSubmit={handleResetPassword}>
+                <div className="form-group">
+                  <label htmlFor="reset-email">Email Address</label>
+                  <input
+                    type="email"
+                    id="reset-email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="reset-code">Reset Code</label>
+                  <input
+                    type="text"
+                    id="reset-code"
+                    value={resetCode}
+                    onChange={(e) => setResetCode(e.target.value)}
+                    placeholder="123456"
+                    required
+                    autoComplete="one-time-code"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="new-password">New Password</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      id="new-password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      style={{ paddingRight: '44px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--text-light)',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  <small style={{ color: 'var(--text-light)', fontSize: '0.8rem' }}>
+                    Min 8 characters, uppercase, lowercase, and number required.
+                  </small>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ width: '100%', marginTop: '10px' }}
+                  disabled={loading}
+                >
+                  {loading ? 'Resetting...' : 'Reset Password'}
+                </button>
+
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                  <button
+                    type="button"
+                    onClick={() => { setView('forgot-password'); setError(''); setSuccessMsg(''); }}
+                    disabled={loading}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--secondary-color)',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      fontSize: '0.95rem',
+                    }}
+                  >
+                    Resend Code
+                  </button>
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.95rem', color: 'var(--text-light)' }}>
+                  Remember your password?{' '}
+                  <button
+                    type="button"
+                    onClick={() => { setView('login'); setError(''); setSuccessMsg(''); }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--secondary-color)',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    Back to Sign in
+                  </button>
+                </div>
+              </form>
             ) : (
               <form onSubmit={view === 'login' ? handleLogin : handleRegister}>
                 {view === 'register' && (
@@ -264,20 +463,63 @@ export default function AuthPage() {
 
                 <div className="form-group">
                   <label htmlFor="password">Password</label>
-                  <input
-                    type="password"
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      style={{ paddingRight: '44px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--text-light)',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                   {view === 'register' && (
                     <small style={{ color: 'var(--text-light)', fontSize: '0.8rem' }}>
                       Min 8 characters, uppercase, lowercase, and number required.
                     </small>
                   )}
                 </div>
+
+                {view === 'login' && (
+                  <div style={{ textAlign: 'right', marginTop: '4px' }}>
+                    <button
+                      type="button"
+                      onClick={() => { setView('forgot-password'); setError(''); setSuccessMsg(''); }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--secondary-color)',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        fontSize: '0.9rem',
+                      }}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                )}
 
                 <button
                   type="submit"

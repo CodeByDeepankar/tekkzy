@@ -5,6 +5,8 @@ const {
     InitiateAuthCommand,
     GetUserCommand,
     ResendConfirmationCodeCommand,
+    ForgotPasswordCommand,
+    ConfirmForgotPasswordCommand,
 } = require('@aws-sdk/client-cognito-identity-provider');
 const { PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const { docClient } = require('../config/dynamo');
@@ -190,6 +192,75 @@ const loginUser = async (req, res) => {
     }
 };
 
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+
+        const command = new ForgotPasswordCommand({
+            ClientId: CLIENT_ID,
+            Username: normalizedEmail,
+        });
+
+        await cognitoClient.send(command);
+
+        res.status(200).json({
+            message: 'Password reset code sent. Please check your email.',
+            email: normalizedEmail,
+        });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        if (error.name === 'UserNotFoundException') {
+            // Don't reveal whether user exists
+            return res.status(200).json({ message: 'If an account exists, a reset code has been sent.' });
+        }
+        if (error.name === 'LimitExceededException') {
+            return res.status(429).json({ message: 'Too many attempts. Please try again later.' });
+        }
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const confirmForgotPassword = async (req, res) => {
+    try {
+        const { email, code, newPassword } = req.body;
+
+        if (!email || !code || !newPassword) {
+            return res.status(400).json({ message: 'Email, code, and new password are required' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+
+        const command = new ConfirmForgotPasswordCommand({
+            ClientId: CLIENT_ID,
+            Username: normalizedEmail,
+            ConfirmationCode: code,
+            Password: newPassword,
+        });
+
+        await cognitoClient.send(command);
+
+        res.status(200).json({ message: 'Password reset successful. You can now sign in with your new password.' });
+    } catch (error) {
+        console.error('Confirm forgot password error:', error);
+        if (error.name === 'CodeMismatchException') {
+            return res.status(400).json({ message: 'Invalid reset code' });
+        }
+        if (error.name === 'ExpiredCodeException') {
+            return res.status(400).json({ message: 'Reset code has expired. Please request a new one.' });
+        }
+        if (error.name === 'InvalidPasswordException') {
+            return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const getMe = async (req, res) => {
     res.status(200).json(req.user);
 };
@@ -199,5 +270,7 @@ module.exports = {
     confirmUser,
     resendCode,
     loginUser,
+    forgotPassword,
+    confirmForgotPassword,
     getMe,
 };
