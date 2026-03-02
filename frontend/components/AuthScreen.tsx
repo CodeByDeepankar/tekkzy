@@ -9,6 +9,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
+import { signOut } from 'aws-amplify/auth';
 
 type AuthView = 'login' | 'register' | 'confirm' | 'forgot-password' | 'reset-password';
 
@@ -35,6 +36,7 @@ export function AuthScreen() {
     setLoading(true);
 
     try {
+      try { await signOut(); } catch { /* ignore */ }
       const res = await api.auth.register({ name, email, password });
       setSuccessMsg(res.message || 'Check your email for a verification code.');
       setView('confirm');
@@ -87,6 +89,7 @@ export function AuthScreen() {
     setLoading(true);
 
     try {
+      try { await signOut(); } catch { /* ignore */ }
       const res = await api.auth.login({ email, password });
 
       if (res.needsConfirmation) {
@@ -100,13 +103,13 @@ export function AuthScreen() {
       const userData = { name: res.name || 'User', email: res.email || email };
 
       if (token) {
-        login(token, userData, res.refreshToken);
+        login(token, userData);
       } else {
         throw new Error('Invalid response from server');
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
-      if (message.includes('not verified') || message.includes('not confirmed')) {
+      if (message.includes('not verified') || message.includes('not confirmed') || message.includes('CONFIRM_SIGN_UP')) {
         setView('confirm');
       }
       setError(message);

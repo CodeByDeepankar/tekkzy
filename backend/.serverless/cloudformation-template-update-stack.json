@@ -132,7 +132,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-          "S3Key": "serverless/daily-spend-manager/dev/1772448742073-2026-03-02T10:52:22.073Z/daily-spend-manager.zip"
+          "S3Key": "serverless/daily-spend-manager/dev/1772451887065-2026-03-02T11:44:47.065Z/daily-spend-manager.zip"
         },
         "Handler": "lambda.handler",
         "Runtime": "nodejs20.x",
@@ -1548,7 +1548,7 @@
         "ApiLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1772448722255": {
+    "ApiGatewayDeployment1772451868046": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {

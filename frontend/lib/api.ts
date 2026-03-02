@@ -1,113 +1,129 @@
 
+import { signUp, confirmSignUp, resendSignUpCode, signIn, resetPassword, confirmResetPassword, fetchAuthSession } from 'aws-amplify/auth';
+
 export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
 
 type APIPayload = Record<string, unknown>;
 
+async function getIdToken(): Promise<string> {
+  const session = await fetchAuthSession();
+  const token = session.tokens?.idToken?.toString();
+  if (!token) throw new Error('Not authenticated');
+  return token;
+}
+
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = await getIdToken();
+  const headers = {
+    ...options.headers,
+    Authorization: `Bearer ${token}`,
+  } as Record<string, string>;
+  return fetch(url, { ...options, headers });
+}
+
 export const api = {
   auth: {
     register: async (data: APIPayload) => {
-      if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const { name, email, password } = data as { name: string; email: string; password: string };
+      const result = await signUp({
+        username: email.toLowerCase(),
+        password,
+        options: {
+          userAttributes: {
+            email: email.toLowerCase(),
+            name,
+          },
+        },
       });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Registration failed');
-      }
-      return res.json();
+      return {
+        message: 'Registration successful. Please check your email for a verification code.',
+        userSub: result.userId,
+        email: email.toLowerCase(),
+        confirmed: result.isSignUpComplete,
+      };
     },
     confirm: async (data: APIPayload) => {
-      if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/auth/confirm`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const { email, code } = data as { email: string; code: string };
+      await confirmSignUp({
+        username: email.toLowerCase(),
+        confirmationCode: code,
       });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Confirmation failed');
-      }
-      return res.json();
+      return { message: 'Email verified successfully. You can now log in.' };
     },
     resendCode: async (data: APIPayload) => {
-      if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/auth/resend-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const { email } = data as { email: string };
+      await resendSignUpCode({
+        username: email.toLowerCase(),
       });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to resend code');
-      }
-      return res.json();
+      return { message: 'Verification code resent. Please check your email.' };
     },
     login: async (data: APIPayload) => {
-      if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const { email, password } = data as { email: string; password: string };
+      const result = await signIn({
+        username: email.toLowerCase(),
+        password,
       });
-      
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({})); 
-        throw new Error(errorData.message || 'Login failed');
+
+      if (result.nextStep?.signInStep === 'CONFIRM_SIGN_UP') {
+        return {
+          needsConfirmation: true,
+          message: 'Account not verified. Please check your email for the verification code.',
+        };
       }
-      return res.json();
+
+      // Fetch the session tokens
+      const session = await fetchAuthSession();
+      const idToken = session.tokens?.idToken?.toString() || '';
+      const accessToken = session.tokens?.accessToken?.toString() || '';
+      const payload = session.tokens?.idToken?.payload;
+
+      return {
+        _id: payload?.sub || '',
+        name: (payload?.name as string) || '',
+        email: (payload?.email as string) || email.toLowerCase(),
+        token: idToken,
+        accessToken,
+      };
     },
     forgotPassword: async (data: APIPayload) => {
-      if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const { email } = data as { email: string };
+      await resetPassword({
+        username: email.toLowerCase(),
       });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to send reset code');
-      }
-      return res.json();
+      return {
+        message: 'Password reset code sent. Please check your email.',
+        email: email.toLowerCase(),
+      };
     },
     confirmForgotPassword: async (data: APIPayload) => {
-      if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/auth/confirm-forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const { email, code, newPassword } = data as { email: string; code: string; newPassword: string };
+      await confirmResetPassword({
+        username: email.toLowerCase(),
+        confirmationCode: code,
+        newPassword,
       });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to reset password');
-      }
-      return res.json();
+      return { message: 'Password reset successful. You can now sign in with your new password.' };
     },
   },
   contacts: {
     list: async () => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/contacts`);
+      const res = await authFetch(`${API_BASE_URL}/api/contacts`);
       if (!res.ok) throw new Error('Failed to fetch contacts');
       return res.json();
     },
-    mine: async (token: string) => {
+    mine: async (token?: string) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/contacts/mine`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // token param kept for backward compat, but we use Amplify session
+      const res = await authFetch(`${API_BASE_URL}/api/contacts/mine`);
       if (!res.ok) throw new Error('Failed to fetch your contacts');
       return res.json();
     },
     create: async (token: string, data: APIPayload) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/contacts`, {
+      const res = await authFetch(`${API_BASE_URL}/api/contacts`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       if (!res.ok) {
@@ -118,12 +134,9 @@ export const api = {
     },
     update: async (token: string, id: string, data: APIPayload) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/contacts/${id}`, {
+      const res = await authFetch(`${API_BASE_URL}/api/contacts/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       if (!res.ok) {
@@ -134,9 +147,8 @@ export const api = {
     },
     delete: async (token: string, id: string) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/contacts/${id}`, {
+      const res = await authFetch(`${API_BASE_URL}/api/contacts/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
@@ -148,12 +160,9 @@ export const api = {
   uploads: {
     presign: async (token: string, data: APIPayload) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await fetch(`${API_BASE_URL}/api/uploads/presign`, {
+      const res = await authFetch(`${API_BASE_URL}/api/uploads/presign`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       if (!res.ok) {

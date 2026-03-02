@@ -207,7 +207,7 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-                  "S3Key": "serverless/daily-spend-manager/dev/1772448742073-2026-03-02T10:52:22.073Z/daily-spend-manager.zip"
+                  "S3Key": "serverless/daily-spend-manager/dev/1772451887065-2026-03-02T11:44:47.065Z/daily-spend-manager.zip"
                 },
                 "Handler": "lambda.handler",
                 "Runtime": "nodejs20.x",
@@ -1423,7 +1423,7 @@
                 "ApiLambdaPermissionApiGateway"
               ]
             },
-            "ApiGatewayDeployment1772448722255": {
+            "ApiGatewayDeployment1772451868046": {
               "Type": "AWS::ApiGateway::Deployment",
               "Properties": {
                 "RestApiId": {
@@ -2390,7 +2390,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-                "S3Key": "serverless/daily-spend-manager/dev/1772448742073-2026-03-02T10:52:22.073Z/daily-spend-manager.zip"
+                "S3Key": "serverless/daily-spend-manager/dev/1772451887065-2026-03-02T11:44:47.065Z/daily-spend-manager.zip"
               },
               "Handler": "lambda.handler",
               "Runtime": "nodejs20.x",
@@ -3606,7 +3606,7 @@
               "ApiLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1772448722255": {
+          "ApiGatewayDeployment1772451868046": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -3895,7 +3895,7 @@
     "serviceProviderAwsCfStackName": "daily-spend-manager-dev",
     "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:542829982435:stack/daily-spend-manager-dev/dece9970-0127-11f1-8f65-0e4555ce26af",
     "serviceProviderAwsCfStackCreated": "2026-02-03T17:43:38.004Z",
-    "serviceProviderAwsCfStackUpdated": "2026-03-01T07:03:20.233Z",
+    "serviceProviderAwsCfStackUpdated": "2026-03-02T10:52:45.056Z",
     "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
@@ -3910,7 +3910,7 @@
       },
       {
         "OutputKey": "ApiLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-1:542829982435:function:daily-spend-manager-dev-api:23",
+        "OutputValue": "arn:aws:lambda:us-east-1:542829982435:function:daily-spend-manager-dev-api:24",
         "Description": "Current Lambda function version",
         "ExportName": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
       },
@@ -4060,7 +4060,7 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-              "S3Key": "serverless/daily-spend-manager/dev/1772448742073-2026-03-02T10:52:22.073Z/daily-spend-manager.zip"
+              "S3Key": "serverless/daily-spend-manager/dev/1772451887065-2026-03-02T11:44:47.065Z/daily-spend-manager.zip"
             },
             "Handler": "lambda.handler",
             "Runtime": "nodejs20.x",
@@ -5276,7 +5276,7 @@
             "ApiLambdaPermissionApiGateway"
           ]
         },
-        "ApiGatewayDeployment1772448722255": {
+        "ApiGatewayDeployment1772451868046": {
           "Type": "AWS::ApiGateway::Deployment",
           "Properties": {
             "RestApiId": {

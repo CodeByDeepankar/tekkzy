@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
+import { signOut } from 'aws-amplify/auth';
 
 type AuthView = 'login' | 'register' | 'confirm' | 'forgot-password' | 'reset-password';
 
@@ -32,6 +33,8 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
+      // Sign out any existing session first to avoid "already signed in" errors
+      try { await signOut(); } catch { /* ignore */ }
       const res = await api.auth.register({ name, email, password });
       setSuccessMsg(res.message || 'Check your email for a verification code.');
       setView('confirm');
@@ -85,6 +88,8 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
+      // Sign out any stale session before attempting login
+      try { await signOut(); } catch { /* ignore */ }
       const res = await api.auth.login({ email, password });
 
       if (res.needsConfirmation) {
@@ -98,7 +103,7 @@ export default function AuthPage() {
       const userData = { name: res.name || 'User', email: res.email || email };
 
       if (token) {
-        login(token, userData, res.refreshToken);
+        login(token, userData);
         router.push('/contact');
       } else {
         throw new Error('Invalid response from server');
@@ -106,8 +111,7 @@ export default function AuthPage() {
     } catch (err: unknown) {
       console.error(err);
       const message = err instanceof Error ? err.message : 'An error occurred';
-      // Check if the error indicates the user needs confirmation
-      if (message.includes('not verified') || message.includes('not confirmed')) {
+      if (message.includes('not verified') || message.includes('not confirmed') || message.includes('CONFIRM_SIGN_UP')) {
         setView('confirm');
       }
       setError(message);
