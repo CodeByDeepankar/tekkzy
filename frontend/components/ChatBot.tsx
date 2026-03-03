@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 
@@ -13,15 +14,40 @@ interface Message {
   timestamp: Date;
 }
 
+interface ServiceRequest {
+  requestId: string;
+  service: string;
+  message: string;
+  status: string;
+  priority: string;
+  adminResponse?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ContactRequest {
+  contactId: string;
+  name: string;
+  service: string;
+  message: string;
+  submitted: string;
+}
+
 interface UserActivity {
-  contactRequests: number;
-  recentServices: string[];
+  contactRequests: ContactRequest[];
+  serviceRequests: ServiceRequest[];
+  totalContacts: number;
+  totalServiceRequests: number;
+  contactServices: string[];
+  requestServices: string[];
+  statusSummary: Record<string, number>;
 }
 
 const QUICK_ACTIONS = [
-  { label: 'Our Services', message: 'What services does Tekkzy offer?' },
-  { label: 'Get a Quote', message: 'I want to get a quote for a project.' },
-  { label: 'My Requests', message: 'Can you tell me about my recent contact requests?' },
+  { label: '📋 My Requests', message: 'Show me a summary of all my service requests and their current status.' },
+  { label: '🚀 Our Services', message: 'What services does Tekkzy offer?' },
+  { label: '💬 Get a Quote', message: 'I want to get a quote for a project.' },
+  { label: '🔄 Request Updates', message: 'Are there any updates or admin responses on my recent requests?' },
 ];
 
 export default function ChatBot() {
@@ -49,16 +75,42 @@ export default function ChatBot() {
     }
   }, [isOpen]);
 
-  // Fetch user activity from AWS backend
+  // Fetch user activity from AWS backend (contacts + service requests)
   const fetchUserActivity = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
-      const data = await api.contacts.mine();
-      const contacts = Array.isArray(data) ? data : data.contacts || [];
-      const services = [...new Set(contacts.map((c: { service?: string }) => c.service).filter(Boolean))] as string[];
+      const [contactData, serviceData] = await Promise.allSettled([
+        api.contacts.mine(),
+        api.serviceRequests.mine(),
+      ]);
+
+      const contacts: ContactRequest[] =
+        contactData.status === 'fulfilled'
+          ? Array.isArray(contactData.value) ? contactData.value : contactData.value.contacts || []
+          : [];
+
+      const serviceRequests: ServiceRequest[] =
+        serviceData.status === 'fulfilled'
+          ? Array.isArray(serviceData.value) ? serviceData.value : serviceData.value.requests || []
+          : [];
+
+      const contactServices = [...new Set(contacts.map(c => c.service).filter(Boolean))] as string[];
+      const requestServices = [...new Set(serviceRequests.map(r => r.service).filter(Boolean))] as string[];
+
+      // Build status summary
+      const statusSummary: Record<string, number> = {};
+      serviceRequests.forEach(r => {
+        statusSummary[r.status] = (statusSummary[r.status] || 0) + 1;
+      });
+
       setUserActivity({
-        contactRequests: contacts.length,
-        recentServices: services.slice(0, 5),
+        contactRequests: contacts.slice(0, 10),
+        serviceRequests: serviceRequests.slice(0, 10),
+        totalContacts: contacts.length,
+        totalServiceRequests: serviceRequests.length,
+        contactServices,
+        requestServices,
+        statusSummary,
       });
     } catch (err) {
       console.error('Failed to fetch user activity:', err);
@@ -74,9 +126,17 @@ export default function ChatBot() {
   // Welcome message when chat opens
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const greeting = user?.name
-        ? `Hi ${user.name.split(' ')[0]}! 👋 Welcome to Tekkzy support. I'm here to help you with our services, your account, or any project questions.`
-        : 'Hi! 👋 Welcome to Tekkzy support. How can I help you today?';
+      let greeting: string;
+      if (user?.name && userActivity && userActivity.totalServiceRequests > 0) {
+        const pendingCount = userActivity.statusSummary['pending'] || 0;
+        const inProgressCount = userActivity.statusSummary['in-progress'] || 0;
+        const activeCount = pendingCount + inProgressCount;
+        greeting = `Hi ${user.name.split(' ')[0]}! 👋 Welcome back to Tekkzy support. You have ${userActivity.totalServiceRequests} service request${userActivity.totalServiceRequests > 1 ? 's' : ''}${activeCount > 0 ? ` (${activeCount} active)` : ''}. How can I help you today?`;
+      } else if (user?.name) {
+        greeting = `Hi ${user.name.split(' ')[0]}! 👋 Welcome to Tekkzy support. I'm here to help you with our services, your account, or any project questions.`;
+      } else {
+        greeting = 'Hi! 👋 Welcome to Tekkzy support. How can I help you today?';
+      }
       setMessages([
         {
           id: 'welcome',
@@ -86,10 +146,10 @@ export default function ChatBot() {
         },
       ]);
     }
-  }, [isOpen, messages.length, user?.name]);
+  }, [isOpen, messages.length, user?.name, userActivity]);
 
   const buildSystemContext = () => {
-    let context = `You are Tekkzy Assistant, a helpful support chatbot for Tekkzy — a company that provides cloud-based software solutions, business automation, intelligent dashboards, digital marketing, and website maintenance services. 
+    let context = `You are Tekkzy Assistant, a helpful and personalized support chatbot for Tekkzy — a company that provides cloud-based software solutions, business automation, intelligent dashboards, digital marketing, and website maintenance services. 
 
 STRICT RULES:
 - Only answer questions related to Tekkzy's services, the user's account/activity, web development, cloud solutions, or general tech consulting topics.
@@ -97,6 +157,7 @@ STRICT RULES:
 - Be friendly, concise, and professional. Use short paragraphs.
 - When discussing services, reference: Custom Cloud Software, Business Automation & Dashboards, Digital Marketing & Growth, Website Maintenance & Support.
 - If the user wants to get started or get a quote, tell them to visit the Contact page or say you can help them outline their needs.
+- IMPORTANT: You have access to the user's real service requests and contact data. Use this to give specific, personalized answers rather than generic ones. Quote request IDs, service names, statuses, and dates when relevant.
 
 TEKKZY SERVICES DETAIL:
 1. Custom Cloud-Based Software Solutions — SaaS development, data management, cloud migration, secure API development
@@ -109,12 +170,51 @@ TEKKZY SERVICES DETAIL:
     }
 
     if (userActivity) {
-      context += `\n\nUSER ACTIVITY:`;
-      context += `\n- Total contact/service requests: ${userActivity.contactRequests}`;
-      if (userActivity.recentServices.length > 0) {
-        context += `\n- Services they've inquired about: ${userActivity.recentServices.join(', ')}`;
+      context += `\n\n===== USER DATA (use this to personalize every response) =====`;
+
+      // Contact requests summary
+      context += `\n\nCONTACT REQUESTS (${userActivity.totalContacts} total):`;
+      if (userActivity.contactRequests.length > 0) {
+        userActivity.contactRequests.forEach((c, i) => {
+          context += `\n  ${i + 1}. Service: "${c.service}" | Message: "${c.message?.substring(0, 120)}${c.message?.length > 120 ? '...' : ''}" | ${c.submitted}`;
+        });
+      } else {
+        context += `\n  No contact requests yet.`;
       }
-      context += `\nUse this info to personalize responses. For example, if they've submitted requests, acknowledge that.`;
+
+      // Service requests with full details
+      context += `\n\nSERVICE REQUESTS (${userActivity.totalServiceRequests} total):`;
+      if (userActivity.serviceRequests.length > 0) {
+        // Status overview
+        const statusParts = Object.entries(userActivity.statusSummary).map(([s, n]) => `${s}: ${n}`);
+        context += `\n  Status overview: ${statusParts.join(', ')}`;
+
+        userActivity.serviceRequests.forEach((r, i) => {
+          context += `\n  ${i + 1}. [${r.requestId.substring(0, 8)}] Service: "${r.service}" | Status: ${r.status.toUpperCase()} | Priority: ${r.priority}`;
+          context += `\n     Message: "${r.message?.substring(0, 150)}${r.message?.length > 150 ? '...' : ''}"`;
+          context += `\n     Created: ${new Date(r.createdAt).toLocaleDateString()} | Updated: ${new Date(r.updatedAt).toLocaleDateString()}`;
+          if (r.adminResponse) {
+            context += `\n     Admin Response: "${r.adminResponse.substring(0, 200)}${r.adminResponse.length > 200 ? '...' : ''}"`;
+          }
+        });
+      } else {
+        context += `\n  No service requests yet.`;
+      }
+
+      // Services the user is interested in
+      const allServices = [...new Set([...userActivity.contactServices, ...userActivity.requestServices])];
+      if (allServices.length > 0) {
+        context += `\n\nSERVICES USER IS INTERESTED IN: ${allServices.join(', ')}`;
+        context += `\nUse this to proactively suggest related services or updates.`;
+      }
+
+      context += `\n\nPERSONALIZATION GUIDELINES:`;
+      context += `\n- Reference the user's actual requests by service name and status when relevant.`;
+      context += `\n- If they ask about "my requests", list their real service requests with status and any admin responses.`;
+      context += `\n- If a request has an admin response, share it. If not, let them know it's being reviewed.`;
+      context += `\n- If they've shown interest in specific services, tailor recommendations around those.`;
+      context += `\n- For status inquiries, give the exact status and last update date.`;
+      context += `\n- If they have no requests yet, encourage them to submit one via the Service Request page.`;
     }
 
     return context;
@@ -250,7 +350,13 @@ TEKKZY SERVICES DETAIL:
                   </div>
                 )}
                 <div className={`chatbot-bubble chatbot-bubble-${msg.sender}`}>
-                  <p>{msg.text}</p>
+                  {msg.sender === 'bot' ? (
+                    <div className="chatbot-markdown">
+                      <ReactMarkdown>{msg.text}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p>{msg.text}</p>
+                  )}
                   <span className="chatbot-time">
                     {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
