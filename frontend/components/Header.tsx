@@ -38,6 +38,7 @@ export default function Header() {
                     <li><Link href="/" className={isActive('/')} onClick={() => setIsMenuOpen(false)}>Home</Link></li>
                     <li><Link href="/about" className={isActive('/about')} onClick={() => setIsMenuOpen(false)}>About Us</Link></li>
                     <li><Link href="/services" className={isActive('/services')} onClick={() => setIsMenuOpen(false)}>Services</Link></li>
+                    <li><Link href="/request" className={isActive('/request')} onClick={() => setIsMenuOpen(false)}>Request Service</Link></li>
                     <li><Link href="/contact" className={isActive('/contact')} onClick={() => setIsMenuOpen(false)}>Contact Us</Link></li>
                     {isAuthenticated ? (
                       <li>

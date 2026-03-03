@@ -28,10 +28,10 @@ export default function Contact() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{ service: string; message: string }>({ service: '', message: '' });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const fetchMessages = async () => {
-    if (!isAuthenticated || !token) {
+    if (!isAuthenticated) {
         setMessages([]);
         return;
     }
@@ -40,7 +40,7 @@ export default function Contact() {
         setMessagesLoading(true);
         setMessagesError(null);
 
-        const data = await api.contacts.mine(token);
+        const data = await api.contacts.mine();
         if (Array.isArray(data)) {
             setMessages(data);
         } else {
@@ -56,7 +56,7 @@ export default function Contact() {
 
   useEffect(() => {
     fetchMessages();
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -77,7 +77,7 @@ export default function Contact() {
             setIsUploading(true);
             setUploadError(null);
 
-            const { uploadUrl, key } = await api.uploads.presign(token!, {
+            const { uploadUrl, key } = await api.uploads.presign({
                 fileName: imageFile.name,
                 contentType: imageFile.type
             });
@@ -97,7 +97,7 @@ export default function Contact() {
             submitData.imageKey = key;
         }
 
-        await api.contacts.create(token!, submitData);
+        await api.contacts.create(submitData);
         alert('Thank you for contacting Tekkzy! We have received your message and will get back to you shortly.');
         form.reset();
         setImageFile(null);
@@ -115,12 +115,10 @@ export default function Contact() {
   };
 
   const handleDelete = async (contactId: string) => {
-    if (!token) return;
-
     try {
         setDeletingId(contactId);
 
-        await api.contacts.delete(token, contactId);
+        await api.contacts.delete(contactId);
         setMessages((prev) => prev.filter((item) => item.contactId !== contactId));
     } catch (error) {
         console.error('Error deleting message:', error);
@@ -142,12 +140,10 @@ export default function Contact() {
   };
 
   const handleSaveEdit = async (contactId: string) => {
-    if (!token) return;
-
     try {
         setIsSavingEdit(true);
 
-        await api.contacts.update(token, contactId, editForm);
+        await api.contacts.update(contactId, editForm);
         setEditingId(null);
         setEditForm({ service: '', message: '' });
         fetchMessages();

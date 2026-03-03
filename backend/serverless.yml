@@ -10,6 +10,7 @@ provider:
   environment:
     DYNAMODB_USERS_TABLE: ${self:service}-${sls:stage}-users
     DYNAMODB_CONTACTS_TABLE: ${self:service}-${sls:stage}-contacts
+    DYNAMODB_SERVICE_REQUESTS_TABLE: ${self:service}-${sls:stage}-service-requests
     DYNAMODB_USERS_EMAIL_INDEX: email-index
     S3_BUCKET: ${self:service}-${sls:stage}-uploads-${aws:accountId}
     COGNITO_USER_POOL_ID:
@@ -32,6 +33,9 @@ provider:
             - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users
             - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users/index/email-index
             - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-contacts
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests/index/userId-index
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests/index/status-index
         - Effect: Allow
           Action:
             - s3:PutObject
@@ -44,6 +48,8 @@ provider:
             - cognito-idp:AdminGetUser
             - cognito-idp:AdminCreateUser
             - cognito-idp:AdminDeleteUser
+            - cognito-idp:AdminAddUserToGroup
+            - cognito-idp:AdminListGroupsForUser
           Resource:
             - Fn::GetAtt: [CognitoUserPool, Arn]
 
@@ -113,6 +119,40 @@ functions:
       - http:
           path: /api/uploads/presign
           method: POST
+          cors: true
+
+      # Service Request routes
+      - http:
+          path: /api/service-requests
+          method: POST
+          cors: true
+      - http:
+          path: /api/service-requests
+          method: GET
+          cors: true
+      - http:
+          path: /api/service-requests/mine
+          method: GET
+          cors: true
+      - http:
+          path: /api/service-requests/{id}
+          method: GET
+          cors: true
+      - http:
+          path: /api/service-requests/{id}/status
+          method: PUT
+          cors: true
+      - http:
+          path: /api/service-requests/{id}/response
+          method: PUT
+          cors: true
+      - http:
+          path: /api/service-requests/{id}/notes
+          method: PUT
+          cors: true
+      - http:
+          path: /api/service-requests/{id}
+          method: DELETE
           cors: true
 
 plugins:
@@ -191,6 +231,50 @@ resources:
             AttributeDataType: String
             Mutable: false
             Required: true
+
+    CognitoAdminGroup:
+      Type: AWS::Cognito::UserPoolGroup
+      Properties:
+        GroupName: admin
+        Description: Administrator group with elevated permissions
+        UserPoolId:
+          Ref: CognitoUserPool
+        Precedence: 0
+
+    ServiceRequestsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${sls:stage}-service-requests
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: requestId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: requestId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: userId-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: status-index
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
 
     CognitoUserPoolClient:
       Type: AWS::Cognito::UserPoolClient

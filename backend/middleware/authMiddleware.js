@@ -46,4 +46,33 @@ const protect = async (req, res, next) => {
     }
 };
 
-module.exports = { protect };
+const adminProtect = async (req, res, next) => {
+    // Must run after protect middleware - req.user should already be set
+    if (!req.user) {
+        return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    try {
+        // Check cognito:groups claim from the JWT payload
+        // Re-verify the token to get the full payload with groups
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ message: 'Not authorized, no token' });
+        }
+
+        const payload = await getVerifier().verify(token);
+        const groups = payload['cognito:groups'] || [];
+
+        if (!groups.includes('admin')) {
+            return res.status(403).json({ message: 'Admin access required' });
+        }
+
+        req.user.isAdmin = true;
+        next();
+    } catch (error) {
+        console.error('Admin auth error:', error);
+        res.status(403).json({ message: 'Admin access required' });
+    }
+};
+
+module.exports = { protect, adminProtect };

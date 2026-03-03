@@ -24,6 +24,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/contacts', require('./routes/contactRoutes'));
 app.use('/api/uploads', require('./routes/uploadRoutes'));
+app.use('/api/service-requests', require('./routes/serviceRequestRoutes'));
 
 // Error Handler
 app.use((err, req, res, next) => {

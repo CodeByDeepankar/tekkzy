@@ -112,14 +112,13 @@ export const api = {
       if (!res.ok) throw new Error('Failed to fetch contacts');
       return res.json();
     },
-    mine: async (token?: string) => {
+    mine: async () => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      // token param kept for backward compat, but we use Amplify session
       const res = await authFetch(`${API_BASE_URL}/api/contacts/mine`);
       if (!res.ok) throw new Error('Failed to fetch your contacts');
       return res.json();
     },
-    create: async (token: string, data: APIPayload) => {
+    create: async (data: APIPayload) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
       const res = await authFetch(`${API_BASE_URL}/api/contacts`, {
         method: 'POST',
@@ -132,7 +131,7 @@ export const api = {
       }
       return res.json();
     },
-    update: async (token: string, id: string, data: APIPayload) => {
+    update: async (id: string, data: APIPayload) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
       const res = await authFetch(`${API_BASE_URL}/api/contacts/${id}`, {
         method: 'PUT',
@@ -145,7 +144,7 @@ export const api = {
       }
       return res.json();
     },
-    delete: async (token: string, id: string) => {
+    delete: async (id: string) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
       const res = await authFetch(`${API_BASE_URL}/api/contacts/${id}`, {
         method: 'DELETE',
@@ -158,7 +157,7 @@ export const api = {
     },
   },
   uploads: {
-    presign: async (token: string, data: APIPayload) => {
+    presign: async (data: APIPayload) => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
       const res = await authFetch(`${API_BASE_URL}/api/uploads/presign`, {
         method: 'POST',
@@ -169,6 +168,33 @@ export const api = {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to get upload URL');
       }
+      return res.json();
+    },
+  },
+  serviceRequests: {
+    create: async (data: APIPayload) => {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await authFetch(`${API_BASE_URL}/api/service-requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to submit service request');
+      }
+      return res.json();
+    },
+    mine: async () => {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await authFetch(`${API_BASE_URL}/api/service-requests/mine`);
+      if (!res.ok) throw new Error('Failed to fetch your service requests');
+      return res.json();
+    },
+    getById: async (id: string) => {
+      if (!API_BASE_URL) throw new Error('API base URL is not configured');
+      const res = await authFetch(`${API_BASE_URL}/api/service-requests/${id}`);
+      if (!res.ok) throw new Error('Failed to fetch service request');
       return res.json();
     },
   },

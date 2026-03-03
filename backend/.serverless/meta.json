@@ -14,6 +14,7 @@
         "environment": {
           "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
           "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
+          "DYNAMODB_SERVICE_REQUESTS_TABLE": "daily-spend-manager-dev-service-requests",
           "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
           "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435",
           "COGNITO_USER_POOL_ID": {
@@ -40,7 +41,10 @@
                 "Resource": [
                   "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users",
                   "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users/index/email-index",
-                  "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts"
+                  "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts",
+                  "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests",
+                  "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests/index/userId-index",
+                  "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests/index/status-index"
                 ]
               },
               {
@@ -57,7 +61,9 @@
                 "Action": [
                   "cognito-idp:AdminGetUser",
                   "cognito-idp:AdminCreateUser",
-                  "cognito-idp:AdminDeleteUser"
+                  "cognito-idp:AdminDeleteUser",
+                  "cognito-idp:AdminAddUserToGroup",
+                  "cognito-idp:AdminListGroupsForUser"
                 ],
                 "Resource": [
                   {
@@ -154,7 +160,10 @@
                           "Resource": [
                             "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users",
                             "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users/index/email-index",
-                            "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts"
+                            "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts",
+                            "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests",
+                            "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests/index/userId-index",
+                            "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests/index/status-index"
                           ]
                         },
                         {
@@ -171,7 +180,9 @@
                           "Action": [
                             "cognito-idp:AdminGetUser",
                             "cognito-idp:AdminCreateUser",
-                            "cognito-idp:AdminDeleteUser"
+                            "cognito-idp:AdminDeleteUser",
+                            "cognito-idp:AdminAddUserToGroup",
+                            "cognito-idp:AdminListGroupsForUser"
                           ],
                           "Resource": [
                             {
@@ -207,7 +218,7 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-                  "S3Key": "serverless/daily-spend-manager/dev/1772451887065-2026-03-02T11:44:47.065Z/daily-spend-manager.zip"
+                  "S3Key": "serverless/daily-spend-manager/dev/1772534612894-2026-03-03T10:43:32.894Z/daily-spend-manager.zip"
                 },
                 "Handler": "lambda.handler",
                 "Runtime": "nodejs20.x",
@@ -218,6 +229,7 @@
                   "Variables": {
                     "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
                     "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
+                    "DYNAMODB_SERVICE_REQUESTS_TABLE": "daily-spend-manager-dev-service-requests",
                     "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
                     "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435",
                     "COGNITO_USER_POOL_ID": {
@@ -240,14 +252,14 @@
                 "ApiLogGroup"
               ]
             },
-            "ApiLambdaVersionbT43eHXk6MNpp5QpHArz0ig0y7OemtFZWVHrdLjag": {
+            "ApiLambdaVersionHIDna2cEXq4Ys9JIhuxWcgECVZerQi8hgXl3mcolYs": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "ApiLambdaFunction"
                 },
-                "CodeSha256": "tdVHFbBb5Yjbt3PDSrVZvcEzpC8NKgd5iD3Irr1jWPA="
+                "CodeSha256": "QoW6hq3PYiEpYLgtYV+7wp4vegfaHNSciVcetwUyQhI="
               }
             },
             "ApiGatewayRestApi": {
@@ -406,6 +418,78 @@
                   "Ref": "ApiGatewayResourceApiUploads"
                 },
                 "PathPart": "presign",
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayResourceApiServiceDashrequests": {
+              "Type": "AWS::ApiGateway::Resource",
+              "Properties": {
+                "ParentId": {
+                  "Ref": "ApiGatewayResourceApi"
+                },
+                "PathPart": "service-requests",
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayResourceApiServiceDashrequestsMine": {
+              "Type": "AWS::ApiGateway::Resource",
+              "Properties": {
+                "ParentId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequests"
+                },
+                "PathPart": "mine",
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayResourceApiServiceDashrequestsIdVar": {
+              "Type": "AWS::ApiGateway::Resource",
+              "Properties": {
+                "ParentId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequests"
+                },
+                "PathPart": "{id}",
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayResourceApiServiceDashrequestsIdVarStatus": {
+              "Type": "AWS::ApiGateway::Resource",
+              "Properties": {
+                "ParentId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+                },
+                "PathPart": "status",
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayResourceApiServiceDashrequestsIdVarResponse": {
+              "Type": "AWS::ApiGateway::Resource",
+              "Properties": {
+                "ParentId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+                },
+                "PathPart": "response",
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayResourceApiServiceDashrequestsIdVarNotes": {
+              "Type": "AWS::ApiGateway::Resource",
+              "Properties": {
+                "ParentId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+                },
+                "PathPart": "notes",
                 "RestApiId": {
                   "Ref": "ApiGatewayRestApi"
                 }
@@ -860,6 +944,276 @@
                 },
                 "ResourceId": {
                   "Ref": "ApiGatewayResourceApiUploadsPresign"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayMethodApiServiceDashrequestsOptions": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "MethodResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": true,
+                      "method.response.header.Access-Control-Allow-Headers": true,
+                      "method.response.header.Access-Control-Allow-Methods": true
+                    },
+                    "ResponseModels": {}
+                  }
+                ],
+                "RequestParameters": {},
+                "Integration": {
+                  "Type": "MOCK",
+                  "RequestTemplates": {
+                    "application/json": "{statusCode:200}"
+                  },
+                  "ContentHandling": "CONVERT_TO_TEXT",
+                  "IntegrationResponses": [
+                    {
+                      "StatusCode": "200",
+                      "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Origin": "'*'",
+                        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,POST'"
+                      },
+                      "ResponseTemplates": {
+                        "application/json": ""
+                      }
+                    }
+                  ]
+                },
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequests"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayMethodApiServiceDashrequestsMineOptions": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "MethodResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": true,
+                      "method.response.header.Access-Control-Allow-Headers": true,
+                      "method.response.header.Access-Control-Allow-Methods": true
+                    },
+                    "ResponseModels": {}
+                  }
+                ],
+                "RequestParameters": {},
+                "Integration": {
+                  "Type": "MOCK",
+                  "RequestTemplates": {
+                    "application/json": "{statusCode:200}"
+                  },
+                  "ContentHandling": "CONVERT_TO_TEXT",
+                  "IntegrationResponses": [
+                    {
+                      "StatusCode": "200",
+                      "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Origin": "'*'",
+                        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+                      },
+                      "ResponseTemplates": {
+                        "application/json": ""
+                      }
+                    }
+                  ]
+                },
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsMine"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayMethodApiServiceDashrequestsIdVarOptions": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "MethodResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": true,
+                      "method.response.header.Access-Control-Allow-Headers": true,
+                      "method.response.header.Access-Control-Allow-Methods": true
+                    },
+                    "ResponseModels": {}
+                  }
+                ],
+                "RequestParameters": {},
+                "Integration": {
+                  "Type": "MOCK",
+                  "RequestTemplates": {
+                    "application/json": "{statusCode:200}"
+                  },
+                  "ContentHandling": "CONVERT_TO_TEXT",
+                  "IntegrationResponses": [
+                    {
+                      "StatusCode": "200",
+                      "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Origin": "'*'",
+                        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,GET'"
+                      },
+                      "ResponseTemplates": {
+                        "application/json": ""
+                      }
+                    }
+                  ]
+                },
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayMethodApiServiceDashrequestsIdVarStatusOptions": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "MethodResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": true,
+                      "method.response.header.Access-Control-Allow-Headers": true,
+                      "method.response.header.Access-Control-Allow-Methods": true
+                    },
+                    "ResponseModels": {}
+                  }
+                ],
+                "RequestParameters": {},
+                "Integration": {
+                  "Type": "MOCK",
+                  "RequestTemplates": {
+                    "application/json": "{statusCode:200}"
+                  },
+                  "ContentHandling": "CONVERT_TO_TEXT",
+                  "IntegrationResponses": [
+                    {
+                      "StatusCode": "200",
+                      "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Origin": "'*'",
+                        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,PUT'"
+                      },
+                      "ResponseTemplates": {
+                        "application/json": ""
+                      }
+                    }
+                  ]
+                },
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarStatus"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayMethodApiServiceDashrequestsIdVarResponseOptions": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "MethodResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": true,
+                      "method.response.header.Access-Control-Allow-Headers": true,
+                      "method.response.header.Access-Control-Allow-Methods": true
+                    },
+                    "ResponseModels": {}
+                  }
+                ],
+                "RequestParameters": {},
+                "Integration": {
+                  "Type": "MOCK",
+                  "RequestTemplates": {
+                    "application/json": "{statusCode:200}"
+                  },
+                  "ContentHandling": "CONVERT_TO_TEXT",
+                  "IntegrationResponses": [
+                    {
+                      "StatusCode": "200",
+                      "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Origin": "'*'",
+                        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,PUT'"
+                      },
+                      "ResponseTemplates": {
+                        "application/json": ""
+                      }
+                    }
+                  ]
+                },
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarResponse"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayMethodApiServiceDashrequestsIdVarNotesOptions": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "MethodResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": true,
+                      "method.response.header.Access-Control-Allow-Headers": true,
+                      "method.response.header.Access-Control-Allow-Methods": true
+                    },
+                    "ResponseModels": {}
+                  }
+                ],
+                "RequestParameters": {},
+                "Integration": {
+                  "Type": "MOCK",
+                  "RequestTemplates": {
+                    "application/json": "{statusCode:200}"
+                  },
+                  "ContentHandling": "CONVERT_TO_TEXT",
+                  "IntegrationResponses": [
+                    {
+                      "StatusCode": "200",
+                      "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Origin": "'*'",
+                        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,PUT'"
+                      },
+                      "ResponseTemplates": {
+                        "application/json": ""
+                      }
+                    }
+                  ]
+                },
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarNotes"
                 },
                 "RestApiId": {
                   "Ref": "ApiGatewayRestApi"
@@ -1423,7 +1777,375 @@
                 "ApiLambdaPermissionApiGateway"
               ]
             },
-            "ApiGatewayDeployment1772451868046": {
+            "ApiGatewayMethodApiServiceDashrequestsPost": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "HttpMethod": "POST",
+                "RequestParameters": {},
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequests"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": "<REDACTED>",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                  "IntegrationHttpMethod": "POST",
+                  "Type": "AWS_PROXY",
+                  "Uri": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                          "Fn::GetAtt": [
+                            "ApiLambdaFunction",
+                            "Arn"
+                          ]
+                        },
+                        "/invocations"
+                      ]
+                    ]
+                  }
+                },
+                "MethodResponses": []
+              },
+              "DependsOn": [
+                "ApiLambdaPermissionApiGateway"
+              ]
+            },
+            "ApiGatewayMethodApiServiceDashrequestsGet": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "HttpMethod": "GET",
+                "RequestParameters": {},
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequests"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": "<REDACTED>",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                  "IntegrationHttpMethod": "POST",
+                  "Type": "AWS_PROXY",
+                  "Uri": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                          "Fn::GetAtt": [
+                            "ApiLambdaFunction",
+                            "Arn"
+                          ]
+                        },
+                        "/invocations"
+                      ]
+                    ]
+                  }
+                },
+                "MethodResponses": []
+              },
+              "DependsOn": [
+                "ApiLambdaPermissionApiGateway"
+              ]
+            },
+            "ApiGatewayMethodApiServiceDashrequestsMineGet": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "HttpMethod": "GET",
+                "RequestParameters": {},
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsMine"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": "<REDACTED>",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                  "IntegrationHttpMethod": "POST",
+                  "Type": "AWS_PROXY",
+                  "Uri": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                          "Fn::GetAtt": [
+                            "ApiLambdaFunction",
+                            "Arn"
+                          ]
+                        },
+                        "/invocations"
+                      ]
+                    ]
+                  }
+                },
+                "MethodResponses": []
+              },
+              "DependsOn": [
+                "ApiLambdaPermissionApiGateway"
+              ]
+            },
+            "ApiGatewayMethodApiServiceDashrequestsIdVarGet": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "HttpMethod": "GET",
+                "RequestParameters": {},
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": "<REDACTED>",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                  "IntegrationHttpMethod": "POST",
+                  "Type": "AWS_PROXY",
+                  "Uri": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                          "Fn::GetAtt": [
+                            "ApiLambdaFunction",
+                            "Arn"
+                          ]
+                        },
+                        "/invocations"
+                      ]
+                    ]
+                  }
+                },
+                "MethodResponses": []
+              },
+              "DependsOn": [
+                "ApiLambdaPermissionApiGateway"
+              ]
+            },
+            "ApiGatewayMethodApiServiceDashrequestsIdVarStatusPut": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "HttpMethod": "PUT",
+                "RequestParameters": {},
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarStatus"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": "<REDACTED>",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                  "IntegrationHttpMethod": "POST",
+                  "Type": "AWS_PROXY",
+                  "Uri": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                          "Fn::GetAtt": [
+                            "ApiLambdaFunction",
+                            "Arn"
+                          ]
+                        },
+                        "/invocations"
+                      ]
+                    ]
+                  }
+                },
+                "MethodResponses": []
+              },
+              "DependsOn": [
+                "ApiLambdaPermissionApiGateway"
+              ]
+            },
+            "ApiGatewayMethodApiServiceDashrequestsIdVarResponsePut": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "HttpMethod": "PUT",
+                "RequestParameters": {},
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarResponse"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": "<REDACTED>",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                  "IntegrationHttpMethod": "POST",
+                  "Type": "AWS_PROXY",
+                  "Uri": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                          "Fn::GetAtt": [
+                            "ApiLambdaFunction",
+                            "Arn"
+                          ]
+                        },
+                        "/invocations"
+                      ]
+                    ]
+                  }
+                },
+                "MethodResponses": []
+              },
+              "DependsOn": [
+                "ApiLambdaPermissionApiGateway"
+              ]
+            },
+            "ApiGatewayMethodApiServiceDashrequestsIdVarNotesPut": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "HttpMethod": "PUT",
+                "RequestParameters": {},
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarNotes"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": "<REDACTED>",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                  "IntegrationHttpMethod": "POST",
+                  "Type": "AWS_PROXY",
+                  "Uri": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                          "Fn::GetAtt": [
+                            "ApiLambdaFunction",
+                            "Arn"
+                          ]
+                        },
+                        "/invocations"
+                      ]
+                    ]
+                  }
+                },
+                "MethodResponses": []
+              },
+              "DependsOn": [
+                "ApiLambdaPermissionApiGateway"
+              ]
+            },
+            "ApiGatewayMethodApiServiceDashrequestsIdVarDelete": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "HttpMethod": "DELETE",
+                "RequestParameters": {},
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": "<REDACTED>",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                  "IntegrationHttpMethod": "POST",
+                  "Type": "AWS_PROXY",
+                  "Uri": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                          "Fn::GetAtt": [
+                            "ApiLambdaFunction",
+                            "Arn"
+                          ]
+                        },
+                        "/invocations"
+                      ]
+                    ]
+                  }
+                },
+                "MethodResponses": []
+              },
+              "DependsOn": [
+                "ApiLambdaPermissionApiGateway"
+              ]
+            },
+            "ApiGatewayDeployment1772534584961": {
               "Type": "AWS::ApiGateway::Deployment",
               "Properties": {
                 "RestApiId": {
@@ -1444,6 +2166,12 @@
                 "ApiGatewayMethodApiContactsMineOptions",
                 "ApiGatewayMethodApiContactsIdVarOptions",
                 "ApiGatewayMethodApiUploadsPresignOptions",
+                "ApiGatewayMethodApiServiceDashrequestsOptions",
+                "ApiGatewayMethodApiServiceDashrequestsMineOptions",
+                "ApiGatewayMethodApiServiceDashrequestsIdVarOptions",
+                "ApiGatewayMethodApiServiceDashrequestsIdVarStatusOptions",
+                "ApiGatewayMethodApiServiceDashrequestsIdVarResponseOptions",
+                "ApiGatewayMethodApiServiceDashrequestsIdVarNotesOptions",
                 "ApiGatewayMethodGet",
                 "ApiGatewayMethodApiAuthRegisterPost",
                 "ApiGatewayMethodApiAuthConfirmPost",
@@ -1457,7 +2185,15 @@
                 "ApiGatewayMethodApiContactsPost",
                 "ApiGatewayMethodApiContactsIdVarPut",
                 "ApiGatewayMethodApiContactsIdVarDelete",
-                "ApiGatewayMethodApiUploadsPresignPost"
+                "ApiGatewayMethodApiUploadsPresignPost",
+                "ApiGatewayMethodApiServiceDashrequestsPost",
+                "ApiGatewayMethodApiServiceDashrequestsGet",
+                "ApiGatewayMethodApiServiceDashrequestsMineGet",
+                "ApiGatewayMethodApiServiceDashrequestsIdVarGet",
+                "ApiGatewayMethodApiServiceDashrequestsIdVarStatusPut",
+                "ApiGatewayMethodApiServiceDashrequestsIdVarResponsePut",
+                "ApiGatewayMethodApiServiceDashrequestsIdVarNotesPut",
+                "ApiGatewayMethodApiServiceDashrequestsIdVarDelete"
               ]
             },
             "ApiLambdaPermissionApiGateway": {
@@ -1604,6 +2340,82 @@
                 ]
               }
             },
+            "CognitoAdminGroup": {
+              "Type": "AWS::Cognito::UserPoolGroup",
+              "Properties": {
+                "GroupName": "admin",
+                "Description": "Administrator group with elevated permissions",
+                "UserPoolId": {
+                  "Ref": "CognitoUserPool"
+                },
+                "Precedence": 0
+              }
+            },
+            "ServiceRequestsTable": {
+              "Type": "AWS::DynamoDB::Table",
+              "Properties": {
+                "TableName": "daily-spend-manager-dev-service-requests",
+                "BillingMode": "PAY_PER_REQUEST",
+                "AttributeDefinitions": [
+                  {
+                    "AttributeName": "requestId",
+                    "AttributeType": "S"
+                  },
+                  {
+                    "AttributeName": "userId",
+                    "AttributeType": "S"
+                  },
+                  {
+                    "AttributeName": "status",
+                    "AttributeType": "S"
+                  },
+                  {
+                    "AttributeName": "createdAt",
+                    "AttributeType": "S"
+                  }
+                ],
+                "KeySchema": [
+                  {
+                    "AttributeName": "requestId",
+                    "KeyType": "HASH"
+                  }
+                ],
+                "GlobalSecondaryIndexes": [
+                  {
+                    "IndexName": "userId-index",
+                    "KeySchema": [
+                      {
+                        "AttributeName": "userId",
+                        "KeyType": "HASH"
+                      },
+                      {
+                        "AttributeName": "createdAt",
+                        "KeyType": "RANGE"
+                      }
+                    ],
+                    "Projection": {
+                      "ProjectionType": "ALL"
+                    }
+                  },
+                  {
+                    "IndexName": "status-index",
+                    "KeySchema": [
+                      {
+                        "AttributeName": "status",
+                        "KeyType": "HASH"
+                      },
+                      {
+                        "AttributeName": "createdAt",
+                        "KeyType": "RANGE"
+                      }
+                    ],
+                    "Projection": {
+                      "ProjectionType": "ALL"
+                    }
+                  }
+                ]
+              }
+            },
             "CognitoUserPoolClient": {
               "Type": "AWS::Cognito::UserPoolClient",
               "Properties": {
@@ -1635,7 +2447,7 @@
             "ApiLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "ApiLambdaVersionbT43eHXk6MNpp5QpHArz0ig0y7OemtFZWVHrdLjag"
+                "Ref": "ApiLambdaVersionHIDna2cEXq4Ys9JIhuxWcgECVZerQi8hgXl3mcolYs"
               },
               "Export": {
                 "Name": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
@@ -2026,6 +2838,198 @@
                 },
                 "integration": "AWS_PROXY"
               }
+            },
+            {
+              "http": {
+                "path": "api/service-requests",
+                "method": "post",
+                "cors": {
+                  "origin": "*",
+                  "methods": [
+                    "OPTIONS",
+                    "POST"
+                  ],
+                  "headers": [
+                    "Content-Type",
+                    "X-Amz-Date",
+                    "Authorization",
+                    "X-Api-Key",
+                    "X-Amz-Security-Token",
+                    "X-Amz-User-Agent",
+                    "X-Amzn-Trace-Id"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                },
+                "integration": "AWS_PROXY"
+              }
+            },
+            {
+              "http": {
+                "path": "api/service-requests",
+                "method": "get",
+                "cors": {
+                  "origin": "*",
+                  "methods": [
+                    "OPTIONS",
+                    "GET"
+                  ],
+                  "headers": [
+                    "Content-Type",
+                    "X-Amz-Date",
+                    "Authorization",
+                    "X-Api-Key",
+                    "X-Amz-Security-Token",
+                    "X-Amz-User-Agent",
+                    "X-Amzn-Trace-Id"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                },
+                "integration": "AWS_PROXY"
+              }
+            },
+            {
+              "http": {
+                "path": "api/service-requests/mine",
+                "method": "get",
+                "cors": {
+                  "origin": "*",
+                  "methods": [
+                    "OPTIONS",
+                    "GET"
+                  ],
+                  "headers": [
+                    "Content-Type",
+                    "X-Amz-Date",
+                    "Authorization",
+                    "X-Api-Key",
+                    "X-Amz-Security-Token",
+                    "X-Amz-User-Agent",
+                    "X-Amzn-Trace-Id"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                },
+                "integration": "AWS_PROXY"
+              }
+            },
+            {
+              "http": {
+                "path": "api/service-requests/{id}",
+                "method": "get",
+                "cors": {
+                  "origin": "*",
+                  "methods": [
+                    "OPTIONS",
+                    "GET"
+                  ],
+                  "headers": [
+                    "Content-Type",
+                    "X-Amz-Date",
+                    "Authorization",
+                    "X-Api-Key",
+                    "X-Amz-Security-Token",
+                    "X-Amz-User-Agent",
+                    "X-Amzn-Trace-Id"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                },
+                "integration": "AWS_PROXY"
+              }
+            },
+            {
+              "http": {
+                "path": "api/service-requests/{id}/status",
+                "method": "put",
+                "cors": {
+                  "origin": "*",
+                  "methods": [
+                    "OPTIONS",
+                    "PUT"
+                  ],
+                  "headers": [
+                    "Content-Type",
+                    "X-Amz-Date",
+                    "Authorization",
+                    "X-Api-Key",
+                    "X-Amz-Security-Token",
+                    "X-Amz-User-Agent",
+                    "X-Amzn-Trace-Id"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                },
+                "integration": "AWS_PROXY"
+              }
+            },
+            {
+              "http": {
+                "path": "api/service-requests/{id}/response",
+                "method": "put",
+                "cors": {
+                  "origin": "*",
+                  "methods": [
+                    "OPTIONS",
+                    "PUT"
+                  ],
+                  "headers": [
+                    "Content-Type",
+                    "X-Amz-Date",
+                    "Authorization",
+                    "X-Api-Key",
+                    "X-Amz-Security-Token",
+                    "X-Amz-User-Agent",
+                    "X-Amzn-Trace-Id"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                },
+                "integration": "AWS_PROXY"
+              }
+            },
+            {
+              "http": {
+                "path": "api/service-requests/{id}/notes",
+                "method": "put",
+                "cors": {
+                  "origin": "*",
+                  "methods": [
+                    "OPTIONS",
+                    "PUT"
+                  ],
+                  "headers": [
+                    "Content-Type",
+                    "X-Amz-Date",
+                    "Authorization",
+                    "X-Api-Key",
+                    "X-Amz-Security-Token",
+                    "X-Amz-User-Agent",
+                    "X-Amzn-Trace-Id"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                },
+                "integration": "AWS_PROXY"
+              }
+            },
+            {
+              "http": {
+                "path": "api/service-requests/{id}",
+                "method": "delete",
+                "cors": {
+                  "origin": "*",
+                  "methods": [
+                    "OPTIONS",
+                    "DELETE"
+                  ],
+                  "headers": [
+                    "Content-Type",
+                    "X-Amz-Date",
+                    "Authorization",
+                    "X-Api-Key",
+                    "X-Amz-Security-Token",
+                    "X-Amz-User-Agent",
+                    "X-Amzn-Trace-Id"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                },
+                "integration": "AWS_PROXY"
+              }
             }
           ],
           "name": "daily-spend-manager-dev-api",
@@ -2034,7 +3038,7 @@
           "timeout": 6,
           "runtime": "nodejs20.x",
           "vpc": {},
-          "versionLogicalId": "ApiLambdaVersionbT43eHXk6MNpp5QpHArz0ig0y7OemtFZWVHrdLjag"
+          "versionLogicalId": "ApiLambdaVersionHIDna2cEXq4Ys9JIhuxWcgECVZerQi8hgXl3mcolYs"
         }
       },
       "plugins": [
@@ -2149,6 +3153,82 @@
               ]
             }
           },
+          "CognitoAdminGroup": {
+            "Type": "AWS::Cognito::UserPoolGroup",
+            "Properties": {
+              "GroupName": "admin",
+              "Description": "Administrator group with elevated permissions",
+              "UserPoolId": {
+                "Ref": "CognitoUserPool"
+              },
+              "Precedence": 0
+            }
+          },
+          "ServiceRequestsTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "daily-spend-manager-dev-service-requests",
+              "BillingMode": "PAY_PER_REQUEST",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "requestId",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "userId",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "status",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "createdAt",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "requestId",
+                  "KeyType": "HASH"
+                }
+              ],
+              "GlobalSecondaryIndexes": [
+                {
+                  "IndexName": "userId-index",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "userId",
+                      "KeyType": "HASH"
+                    },
+                    {
+                      "AttributeName": "createdAt",
+                      "KeyType": "RANGE"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                },
+                {
+                  "IndexName": "status-index",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "status",
+                      "KeyType": "HASH"
+                    },
+                    {
+                      "AttributeName": "createdAt",
+                      "KeyType": "RANGE"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                }
+              ]
+            }
+          },
           "CognitoUserPoolClient": {
             "Type": "AWS::Cognito::UserPoolClient",
             "Properties": {
@@ -2197,6 +3277,7 @@
       "environment": {
         "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
         "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
+        "DYNAMODB_SERVICE_REQUESTS_TABLE": "daily-spend-manager-dev-service-requests",
         "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
         "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435",
         "COGNITO_USER_POOL_ID": {
@@ -2223,7 +3304,10 @@
               "Resource": [
                 "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users",
                 "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users/index/email-index",
-                "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts"
+                "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts",
+                "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests",
+                "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests/index/userId-index",
+                "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests/index/status-index"
               ]
             },
             {
@@ -2240,7 +3324,9 @@
               "Action": [
                 "cognito-idp:AdminGetUser",
                 "cognito-idp:AdminCreateUser",
-                "cognito-idp:AdminDeleteUser"
+                "cognito-idp:AdminDeleteUser",
+                "cognito-idp:AdminAddUserToGroup",
+                "cognito-idp:AdminListGroupsForUser"
               ],
               "Resource": [
                 {
@@ -2337,7 +3423,10 @@
                         "Resource": [
                           "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users",
                           "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users/index/email-index",
-                          "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts"
+                          "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts",
+                          "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests",
+                          "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests/index/userId-index",
+                          "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests/index/status-index"
                         ]
                       },
                       {
@@ -2354,7 +3443,9 @@
                         "Action": [
                           "cognito-idp:AdminGetUser",
                           "cognito-idp:AdminCreateUser",
-                          "cognito-idp:AdminDeleteUser"
+                          "cognito-idp:AdminDeleteUser",
+                          "cognito-idp:AdminAddUserToGroup",
+                          "cognito-idp:AdminListGroupsForUser"
                         ],
                         "Resource": [
                           {
@@ -2390,7 +3481,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-                "S3Key": "serverless/daily-spend-manager/dev/1772451887065-2026-03-02T11:44:47.065Z/daily-spend-manager.zip"
+                "S3Key": "serverless/daily-spend-manager/dev/1772534612894-2026-03-03T10:43:32.894Z/daily-spend-manager.zip"
               },
               "Handler": "lambda.handler",
               "Runtime": "nodejs20.x",
@@ -2401,6 +3492,7 @@
                 "Variables": {
                   "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
                   "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
+                  "DYNAMODB_SERVICE_REQUESTS_TABLE": "daily-spend-manager-dev-service-requests",
                   "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
                   "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435",
                   "COGNITO_USER_POOL_ID": {
@@ -2423,14 +3515,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersionbT43eHXk6MNpp5QpHArz0ig0y7OemtFZWVHrdLjag": {
+          "ApiLambdaVersionHIDna2cEXq4Ys9JIhuxWcgECVZerQi8hgXl3mcolYs": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "tdVHFbBb5Yjbt3PDSrVZvcEzpC8NKgd5iD3Irr1jWPA="
+              "CodeSha256": "QoW6hq3PYiEpYLgtYV+7wp4vegfaHNSciVcetwUyQhI="
             }
           },
           "ApiGatewayRestApi": {
@@ -2589,6 +3681,78 @@
                 "Ref": "ApiGatewayResourceApiUploads"
               },
               "PathPart": "presign",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceApiServiceDashrequests": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceApi"
+              },
+              "PathPart": "service-requests",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceApiServiceDashrequestsMine": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequests"
+              },
+              "PathPart": "mine",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceApiServiceDashrequestsIdVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequests"
+              },
+              "PathPart": "{id}",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceApiServiceDashrequestsIdVarStatus": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+              },
+              "PathPart": "status",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceApiServiceDashrequestsIdVarResponse": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+              },
+              "PathPart": "response",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceApiServiceDashrequestsIdVarNotes": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+              },
+              "PathPart": "notes",
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               }
@@ -3043,6 +4207,276 @@
               },
               "ResourceId": {
                 "Ref": "ApiGatewayResourceApiUploadsPresign"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodApiServiceDashrequestsOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequests"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodApiServiceDashrequestsMineOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsMine"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodApiServiceDashrequestsIdVarOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,GET'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodApiServiceDashrequestsIdVarStatusOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,PUT'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarStatus"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodApiServiceDashrequestsIdVarResponseOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,PUT'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarResponse"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodApiServiceDashrequestsIdVarNotesOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,PUT'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarNotes"
               },
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
@@ -3606,7 +5040,375 @@
               "ApiLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1772451868046": {
+          "ApiGatewayMethodApiServiceDashrequestsPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequests"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": "<REDACTED>",
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodApiServiceDashrequestsGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequests"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": "<REDACTED>",
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodApiServiceDashrequestsMineGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsMine"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": "<REDACTED>",
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodApiServiceDashrequestsIdVarGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": "<REDACTED>",
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodApiServiceDashrequestsIdVarStatusPut": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "PUT",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarStatus"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": "<REDACTED>",
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodApiServiceDashrequestsIdVarResponsePut": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "PUT",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarResponse"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": "<REDACTED>",
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodApiServiceDashrequestsIdVarNotesPut": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "PUT",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarNotes"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": "<REDACTED>",
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodApiServiceDashrequestsIdVarDelete": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "DELETE",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": "<REDACTED>",
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayDeployment1772534584961": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -3627,6 +5429,12 @@
               "ApiGatewayMethodApiContactsMineOptions",
               "ApiGatewayMethodApiContactsIdVarOptions",
               "ApiGatewayMethodApiUploadsPresignOptions",
+              "ApiGatewayMethodApiServiceDashrequestsOptions",
+              "ApiGatewayMethodApiServiceDashrequestsMineOptions",
+              "ApiGatewayMethodApiServiceDashrequestsIdVarOptions",
+              "ApiGatewayMethodApiServiceDashrequestsIdVarStatusOptions",
+              "ApiGatewayMethodApiServiceDashrequestsIdVarResponseOptions",
+              "ApiGatewayMethodApiServiceDashrequestsIdVarNotesOptions",
               "ApiGatewayMethodGet",
               "ApiGatewayMethodApiAuthRegisterPost",
               "ApiGatewayMethodApiAuthConfirmPost",
@@ -3640,7 +5448,15 @@
               "ApiGatewayMethodApiContactsPost",
               "ApiGatewayMethodApiContactsIdVarPut",
               "ApiGatewayMethodApiContactsIdVarDelete",
-              "ApiGatewayMethodApiUploadsPresignPost"
+              "ApiGatewayMethodApiUploadsPresignPost",
+              "ApiGatewayMethodApiServiceDashrequestsPost",
+              "ApiGatewayMethodApiServiceDashrequestsGet",
+              "ApiGatewayMethodApiServiceDashrequestsMineGet",
+              "ApiGatewayMethodApiServiceDashrequestsIdVarGet",
+              "ApiGatewayMethodApiServiceDashrequestsIdVarStatusPut",
+              "ApiGatewayMethodApiServiceDashrequestsIdVarResponsePut",
+              "ApiGatewayMethodApiServiceDashrequestsIdVarNotesPut",
+              "ApiGatewayMethodApiServiceDashrequestsIdVarDelete"
             ]
           },
           "ApiLambdaPermissionApiGateway": {
@@ -3787,6 +5603,82 @@
               ]
             }
           },
+          "CognitoAdminGroup": {
+            "Type": "AWS::Cognito::UserPoolGroup",
+            "Properties": {
+              "GroupName": "admin",
+              "Description": "Administrator group with elevated permissions",
+              "UserPoolId": {
+                "Ref": "CognitoUserPool"
+              },
+              "Precedence": 0
+            }
+          },
+          "ServiceRequestsTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "daily-spend-manager-dev-service-requests",
+              "BillingMode": "PAY_PER_REQUEST",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "requestId",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "userId",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "status",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "createdAt",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "requestId",
+                  "KeyType": "HASH"
+                }
+              ],
+              "GlobalSecondaryIndexes": [
+                {
+                  "IndexName": "userId-index",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "userId",
+                      "KeyType": "HASH"
+                    },
+                    {
+                      "AttributeName": "createdAt",
+                      "KeyType": "RANGE"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                },
+                {
+                  "IndexName": "status-index",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "status",
+                      "KeyType": "HASH"
+                    },
+                    {
+                      "AttributeName": "createdAt",
+                      "KeyType": "RANGE"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                }
+              ]
+            }
+          },
           "CognitoUserPoolClient": {
             "Type": "AWS::Cognito::UserPoolClient",
             "Properties": {
@@ -3818,7 +5710,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersionbT43eHXk6MNpp5QpHArz0ig0y7OemtFZWVHrdLjag"
+              "Ref": "ApiLambdaVersionHIDna2cEXq4Ys9JIhuxWcgECVZerQi8hgXl3mcolYs"
             },
             "Export": {
               "Name": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
@@ -3882,7 +5774,7 @@
       "serviceProvider": null,
       "instanceParameters": null
     },
-    "serviceRawFile": "# serverless.yml\norg: deepankar68\napp: daily-spend-manager\nservice: daily-spend-manager\n\nprovider:\n  name: aws\n  runtime: nodejs20.x\n  region: us-east-1\n  environment:\n    DYNAMODB_USERS_TABLE: ${self:service}-${sls:stage}-users\n    DYNAMODB_CONTACTS_TABLE: ${self:service}-${sls:stage}-contacts\n    DYNAMODB_USERS_EMAIL_INDEX: email-index\n    S3_BUCKET: ${self:service}-${sls:stage}-uploads-${aws:accountId}\n    COGNITO_USER_POOL_ID:\n      Ref: CognitoUserPool\n    COGNITO_CLIENT_ID:\n      Ref: CognitoUserPoolClient\n    COGNITO_REGION: ${self:provider.region}\n  iam:\n    role:\n      statements:\n        - Effect: Allow\n          Action:\n            - dynamodb:PutItem\n            - dynamodb:GetItem\n            - dynamodb:Query\n            - dynamodb:Scan\n            - dynamodb:DeleteItem\n            - dynamodb:UpdateItem\n          Resource:\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users/index/email-index\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-contacts\n        - Effect: Allow\n          Action:\n            - s3:PutObject\n            - s3:GetObject\n            - s3:DeleteObject\n          Resource:\n            - arn:aws:s3:::${self:service}-${sls:stage}-uploads-${aws:accountId}/*\n        - Effect: Allow\n          Action:\n            - cognito-idp:AdminGetUser\n            - cognito-idp:AdminCreateUser\n            - cognito-idp:AdminDeleteUser\n          Resource:\n            - Fn::GetAtt: [CognitoUserPool, Arn]\n\nfunctions:\n  api:\n    handler: lambda.handler\n    events:\n      # Root\n      - http:\n          path: /\n          method: GET\n          cors: true\n\n      # Auth routes\n      - http:\n          path: /api/auth/register\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/confirm\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/resend-code\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/login\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/forgot-password\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/confirm-forgot-password\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/me\n          method: GET\n          cors: true\n\n      # Contact routes\n      - http:\n          path: /api/contacts\n          method: GET\n          cors: true\n      - http:\n          path: /api/contacts/mine\n          method: GET\n          cors: true\n      - http:\n          path: /api/contacts\n          method: POST\n          cors: true\n      - http:\n          path: /api/contacts/{id}\n          method: PUT\n          cors: true\n      - http:\n          path: /api/contacts/{id}\n          method: DELETE\n          cors: true\n\n      # Upload routes\n      - http:\n          path: /api/uploads/presign\n          method: POST\n          cors: true\n\nplugins:\n  - serverless-offline\n\nresources:\n  Resources:\n    UsersTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${self:service}-${sls:stage}-users\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: userId\n            AttributeType: S\n          - AttributeName: email\n            AttributeType: S\n        KeySchema:\n          - AttributeName: userId\n            KeyType: HASH\n        GlobalSecondaryIndexes:\n          - IndexName: email-index\n            KeySchema:\n              - AttributeName: email\n                KeyType: HASH\n            Projection:\n              ProjectionType: ALL\n\n    ContactsTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${self:service}-${sls:stage}-contacts\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: contactId\n            AttributeType: S\n        KeySchema:\n          - AttributeName: contactId\n            KeyType: HASH\n\n    UploadsBucket:\n      Type: AWS::S3::Bucket\n      Properties:\n        BucketName: ${self:service}-${sls:stage}-uploads-${aws:accountId}\n        CorsConfiguration:\n          CorsRules:\n            - AllowedOrigins:\n                - '*'\n              AllowedHeaders:\n                - '*'\n              AllowedMethods:\n                - PUT\n                - POST\n\n    CognitoUserPool:\n      Type: AWS::Cognito::UserPool\n      Properties:\n        UserPoolName: ${self:service}-${sls:stage}-user-pool\n        UsernameAttributes:\n          - email\n        AutoVerifiedAttributes:\n          - email\n        Policies:\n          PasswordPolicy:\n            MinimumLength: 8\n            RequireLowercase: true\n            RequireNumbers: true\n            RequireSymbols: false\n            RequireUppercase: true\n        Schema:\n          - Name: name\n            AttributeDataType: String\n            Mutable: true\n            Required: false\n          - Name: email\n            AttributeDataType: String\n            Mutable: false\n            Required: true\n\n    CognitoUserPoolClient:\n      Type: AWS::Cognito::UserPoolClient\n      Properties:\n        ClientName: ${self:service}-${sls:stage}-client\n        UserPoolId:\n          Ref: CognitoUserPool\n        GenerateSecret: false\n        ExplicitAuthFlows:\n          - ALLOW_USER_PASSWORD_AUTH\n          - ALLOW_REFRESH_TOKEN_AUTH\n          - ALLOW_USER_SRP_AUTH\n        PreventUserExistenceErrors: ENABLED\n        AccessTokenValidity: 1\n        IdTokenValidity: 1\n        RefreshTokenValidity: 30\n        TokenValidityUnits:\n          AccessToken: days\n          IdToken: days\n          RefreshToken: days\n\n  Outputs:\n    CognitoUserPoolId:\n      Value:\n        Ref: CognitoUserPool\n      Export:\n        Name: ${self:service}-${sls:stage}-UserPoolId\n    CognitoUserPoolClientId:\n      Value:\n        Ref: CognitoUserPoolClient\n      Export:\n        Name: ${self:service}-${sls:stage}-UserPoolClientId\n",
+    "serviceRawFile": "# serverless.yml\norg: deepankar68\napp: daily-spend-manager\nservice: daily-spend-manager\n\nprovider:\n  name: aws\n  runtime: nodejs20.x\n  region: us-east-1\n  environment:\n    DYNAMODB_USERS_TABLE: ${self:service}-${sls:stage}-users\n    DYNAMODB_CONTACTS_TABLE: ${self:service}-${sls:stage}-contacts\n    DYNAMODB_SERVICE_REQUESTS_TABLE: ${self:service}-${sls:stage}-service-requests\n    DYNAMODB_USERS_EMAIL_INDEX: email-index\n    S3_BUCKET: ${self:service}-${sls:stage}-uploads-${aws:accountId}\n    COGNITO_USER_POOL_ID:\n      Ref: CognitoUserPool\n    COGNITO_CLIENT_ID:\n      Ref: CognitoUserPoolClient\n    COGNITO_REGION: ${self:provider.region}\n  iam:\n    role:\n      statements:\n        - Effect: Allow\n          Action:\n            - dynamodb:PutItem\n            - dynamodb:GetItem\n            - dynamodb:Query\n            - dynamodb:Scan\n            - dynamodb:DeleteItem\n            - dynamodb:UpdateItem\n          Resource:\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users/index/email-index\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-contacts\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests/index/userId-index\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests/index/status-index\n        - Effect: Allow\n          Action:\n            - s3:PutObject\n            - s3:GetObject\n            - s3:DeleteObject\n          Resource:\n            - arn:aws:s3:::${self:service}-${sls:stage}-uploads-${aws:accountId}/*\n        - Effect: Allow\n          Action:\n            - cognito-idp:AdminGetUser\n            - cognito-idp:AdminCreateUser\n            - cognito-idp:AdminDeleteUser\n            - cognito-idp:AdminAddUserToGroup\n            - cognito-idp:AdminListGroupsForUser\n          Resource:\n            - Fn::GetAtt: [CognitoUserPool, Arn]\n\nfunctions:\n  api:\n    handler: lambda.handler\n    events:\n      # Root\n      - http:\n          path: /\n          method: GET\n          cors: true\n\n      # Auth routes\n      - http:\n          path: /api/auth/register\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/confirm\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/resend-code\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/login\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/forgot-password\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/confirm-forgot-password\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/me\n          method: GET\n          cors: true\n\n      # Contact routes\n      - http:\n          path: /api/contacts\n          method: GET\n          cors: true\n      - http:\n          path: /api/contacts/mine\n          method: GET\n          cors: true\n      - http:\n          path: /api/contacts\n          method: POST\n          cors: true\n      - http:\n          path: /api/contacts/{id}\n          method: PUT\n          cors: true\n      - http:\n          path: /api/contacts/{id}\n          method: DELETE\n          cors: true\n\n      # Upload routes\n      - http:\n          path: /api/uploads/presign\n          method: POST\n          cors: true\n\n      # Service Request routes\n      - http:\n          path: /api/service-requests\n          method: POST\n          cors: true\n      - http:\n          path: /api/service-requests\n          method: GET\n          cors: true\n      - http:\n          path: /api/service-requests/mine\n          method: GET\n          cors: true\n      - http:\n          path: /api/service-requests/{id}\n          method: GET\n          cors: true\n      - http:\n          path: /api/service-requests/{id}/status\n          method: PUT\n          cors: true\n      - http:\n          path: /api/service-requests/{id}/response\n          method: PUT\n          cors: true\n      - http:\n          path: /api/service-requests/{id}/notes\n          method: PUT\n          cors: true\n      - http:\n          path: /api/service-requests/{id}\n          method: DELETE\n          cors: true\n\nplugins:\n  - serverless-offline\n\nresources:\n  Resources:\n    UsersTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${self:service}-${sls:stage}-users\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: userId\n            AttributeType: S\n          - AttributeName: email\n            AttributeType: S\n        KeySchema:\n          - AttributeName: userId\n            KeyType: HASH\n        GlobalSecondaryIndexes:\n          - IndexName: email-index\n            KeySchema:\n              - AttributeName: email\n                KeyType: HASH\n            Projection:\n              ProjectionType: ALL\n\n    ContactsTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${self:service}-${sls:stage}-contacts\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: contactId\n            AttributeType: S\n        KeySchema:\n          - AttributeName: contactId\n            KeyType: HASH\n\n    UploadsBucket:\n      Type: AWS::S3::Bucket\n      Properties:\n        BucketName: ${self:service}-${sls:stage}-uploads-${aws:accountId}\n        CorsConfiguration:\n          CorsRules:\n            - AllowedOrigins:\n                - '*'\n              AllowedHeaders:\n                - '*'\n              AllowedMethods:\n                - PUT\n                - POST\n\n    CognitoUserPool:\n      Type: AWS::Cognito::UserPool\n      Properties:\n        UserPoolName: ${self:service}-${sls:stage}-user-pool\n        UsernameAttributes:\n          - email\n        AutoVerifiedAttributes:\n          - email\n        Policies:\n          PasswordPolicy:\n            MinimumLength: 8\n            RequireLowercase: true\n            RequireNumbers: true\n            RequireSymbols: false\n            RequireUppercase: true\n        Schema:\n          - Name: name\n            AttributeDataType: String\n            Mutable: true\n            Required: false\n          - Name: email\n            AttributeDataType: String\n            Mutable: false\n            Required: true\n\n    CognitoAdminGroup:\n      Type: AWS::Cognito::UserPoolGroup\n      Properties:\n        GroupName: admin\n        Description: Administrator group with elevated permissions\n        UserPoolId:\n          Ref: CognitoUserPool\n        Precedence: 0\n\n    ServiceRequestsTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${self:service}-${sls:stage}-service-requests\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: requestId\n            AttributeType: S\n          - AttributeName: userId\n            AttributeType: S\n          - AttributeName: status\n            AttributeType: S\n          - AttributeName: createdAt\n            AttributeType: S\n        KeySchema:\n          - AttributeName: requestId\n            KeyType: HASH\n        GlobalSecondaryIndexes:\n          - IndexName: userId-index\n            KeySchema:\n              - AttributeName: userId\n                KeyType: HASH\n              - AttributeName: createdAt\n                KeyType: RANGE\n            Projection:\n              ProjectionType: ALL\n          - IndexName: status-index\n            KeySchema:\n              - AttributeName: status\n                KeyType: HASH\n              - AttributeName: createdAt\n                KeyType: RANGE\n            Projection:\n              ProjectionType: ALL\n\n    CognitoUserPoolClient:\n      Type: AWS::Cognito::UserPoolClient\n      Properties:\n        ClientName: ${self:service}-${sls:stage}-client\n        UserPoolId:\n          Ref: CognitoUserPool\n        GenerateSecret: false\n        ExplicitAuthFlows:\n          - ALLOW_USER_PASSWORD_AUTH\n          - ALLOW_REFRESH_TOKEN_AUTH\n          - ALLOW_USER_SRP_AUTH\n        PreventUserExistenceErrors: ENABLED\n        AccessTokenValidity: 1\n        IdTokenValidity: 1\n        RefreshTokenValidity: 30\n        TokenValidityUnits:\n          AccessToken: days\n          IdToken: days\n          RefreshToken: days\n\n  Outputs:\n    CognitoUserPoolId:\n      Value:\n        Ref: CognitoUserPool\n      Export:\n        Name: ${self:service}-${sls:stage}-UserPoolId\n    CognitoUserPoolClientId:\n      Value:\n        Ref: CognitoUserPoolClient\n      Export:\n        Name: ${self:service}-${sls:stage}-UserPoolClientId\n",
     "command": [
       "deploy"
     ],
@@ -4007,7 +5899,10 @@
                       "Resource": [
                         "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users",
                         "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-users/index/email-index",
-                        "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts"
+                        "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-contacts",
+                        "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests",
+                        "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests/index/userId-index",
+                        "arn:aws:dynamodb:us-east-1:*:table/daily-spend-manager-dev-service-requests/index/status-index"
                       ]
                     },
                     {
@@ -4024,7 +5919,9 @@
                       "Action": [
                         "cognito-idp:AdminGetUser",
                         "cognito-idp:AdminCreateUser",
-                        "cognito-idp:AdminDeleteUser"
+                        "cognito-idp:AdminDeleteUser",
+                        "cognito-idp:AdminAddUserToGroup",
+                        "cognito-idp:AdminListGroupsForUser"
                       ],
                       "Resource": [
                         {
@@ -4060,7 +5957,7 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-              "S3Key": "serverless/daily-spend-manager/dev/1772451887065-2026-03-02T11:44:47.065Z/daily-spend-manager.zip"
+              "S3Key": "serverless/daily-spend-manager/dev/1772534612894-2026-03-03T10:43:32.894Z/daily-spend-manager.zip"
             },
             "Handler": "lambda.handler",
             "Runtime": "nodejs20.x",
@@ -4071,6 +5968,7 @@
               "Variables": {
                 "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
                 "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
+                "DYNAMODB_SERVICE_REQUESTS_TABLE": "daily-spend-manager-dev-service-requests",
                 "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
                 "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435",
                 "COGNITO_USER_POOL_ID": {
@@ -4093,14 +5991,14 @@
             "ApiLogGroup"
           ]
         },
-        "ApiLambdaVersionbT43eHXk6MNpp5QpHArz0ig0y7OemtFZWVHrdLjag": {
+        "ApiLambdaVersionHIDna2cEXq4Ys9JIhuxWcgECVZerQi8hgXl3mcolYs": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "ApiLambdaFunction"
             },
-            "CodeSha256": "tdVHFbBb5Yjbt3PDSrVZvcEzpC8NKgd5iD3Irr1jWPA="
+            "CodeSha256": "QoW6hq3PYiEpYLgtYV+7wp4vegfaHNSciVcetwUyQhI="
           }
         },
         "ApiGatewayRestApi": {
@@ -4259,6 +6157,78 @@
               "Ref": "ApiGatewayResourceApiUploads"
             },
             "PathPart": "presign",
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayResourceApiServiceDashrequests": {
+          "Type": "AWS::ApiGateway::Resource",
+          "Properties": {
+            "ParentId": {
+              "Ref": "ApiGatewayResourceApi"
+            },
+            "PathPart": "service-requests",
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayResourceApiServiceDashrequestsMine": {
+          "Type": "AWS::ApiGateway::Resource",
+          "Properties": {
+            "ParentId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequests"
+            },
+            "PathPart": "mine",
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayResourceApiServiceDashrequestsIdVar": {
+          "Type": "AWS::ApiGateway::Resource",
+          "Properties": {
+            "ParentId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequests"
+            },
+            "PathPart": "{id}",
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayResourceApiServiceDashrequestsIdVarStatus": {
+          "Type": "AWS::ApiGateway::Resource",
+          "Properties": {
+            "ParentId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+            },
+            "PathPart": "status",
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayResourceApiServiceDashrequestsIdVarResponse": {
+          "Type": "AWS::ApiGateway::Resource",
+          "Properties": {
+            "ParentId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+            },
+            "PathPart": "response",
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayResourceApiServiceDashrequestsIdVarNotes": {
+          "Type": "AWS::ApiGateway::Resource",
+          "Properties": {
+            "ParentId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+            },
+            "PathPart": "notes",
             "RestApiId": {
               "Ref": "ApiGatewayRestApi"
             }
@@ -4713,6 +6683,276 @@
             },
             "ResourceId": {
               "Ref": "ApiGatewayResourceApiUploadsPresign"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayMethodApiServiceDashrequestsOptions": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "AuthorizationType": "NONE",
+            "HttpMethod": "OPTIONS",
+            "MethodResponses": [
+              {
+                "StatusCode": "200",
+                "ResponseParameters": {
+                  "method.response.header.Access-Control-Allow-Origin": true,
+                  "method.response.header.Access-Control-Allow-Headers": true,
+                  "method.response.header.Access-Control-Allow-Methods": true
+                },
+                "ResponseModels": {}
+              }
+            ],
+            "RequestParameters": {},
+            "Integration": {
+              "Type": "MOCK",
+              "RequestTemplates": {
+                "application/json": "{statusCode:200}"
+              },
+              "ContentHandling": "CONVERT_TO_TEXT",
+              "IntegrationResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": "'*'",
+                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                    "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,POST'"
+                  },
+                  "ResponseTemplates": {
+                    "application/json": ""
+                  }
+                }
+              ]
+            },
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequests"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayMethodApiServiceDashrequestsMineOptions": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "AuthorizationType": "NONE",
+            "HttpMethod": "OPTIONS",
+            "MethodResponses": [
+              {
+                "StatusCode": "200",
+                "ResponseParameters": {
+                  "method.response.header.Access-Control-Allow-Origin": true,
+                  "method.response.header.Access-Control-Allow-Headers": true,
+                  "method.response.header.Access-Control-Allow-Methods": true
+                },
+                "ResponseModels": {}
+              }
+            ],
+            "RequestParameters": {},
+            "Integration": {
+              "Type": "MOCK",
+              "RequestTemplates": {
+                "application/json": "{statusCode:200}"
+              },
+              "ContentHandling": "CONVERT_TO_TEXT",
+              "IntegrationResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": "'*'",
+                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                    "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+                  },
+                  "ResponseTemplates": {
+                    "application/json": ""
+                  }
+                }
+              ]
+            },
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsMine"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayMethodApiServiceDashrequestsIdVarOptions": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "AuthorizationType": "NONE",
+            "HttpMethod": "OPTIONS",
+            "MethodResponses": [
+              {
+                "StatusCode": "200",
+                "ResponseParameters": {
+                  "method.response.header.Access-Control-Allow-Origin": true,
+                  "method.response.header.Access-Control-Allow-Headers": true,
+                  "method.response.header.Access-Control-Allow-Methods": true
+                },
+                "ResponseModels": {}
+              }
+            ],
+            "RequestParameters": {},
+            "Integration": {
+              "Type": "MOCK",
+              "RequestTemplates": {
+                "application/json": "{statusCode:200}"
+              },
+              "ContentHandling": "CONVERT_TO_TEXT",
+              "IntegrationResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": "'*'",
+                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                    "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,GET'"
+                  },
+                  "ResponseTemplates": {
+                    "application/json": ""
+                  }
+                }
+              ]
+            },
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayMethodApiServiceDashrequestsIdVarStatusOptions": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "AuthorizationType": "NONE",
+            "HttpMethod": "OPTIONS",
+            "MethodResponses": [
+              {
+                "StatusCode": "200",
+                "ResponseParameters": {
+                  "method.response.header.Access-Control-Allow-Origin": true,
+                  "method.response.header.Access-Control-Allow-Headers": true,
+                  "method.response.header.Access-Control-Allow-Methods": true
+                },
+                "ResponseModels": {}
+              }
+            ],
+            "RequestParameters": {},
+            "Integration": {
+              "Type": "MOCK",
+              "RequestTemplates": {
+                "application/json": "{statusCode:200}"
+              },
+              "ContentHandling": "CONVERT_TO_TEXT",
+              "IntegrationResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": "'*'",
+                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                    "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,PUT'"
+                  },
+                  "ResponseTemplates": {
+                    "application/json": ""
+                  }
+                }
+              ]
+            },
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarStatus"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayMethodApiServiceDashrequestsIdVarResponseOptions": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "AuthorizationType": "NONE",
+            "HttpMethod": "OPTIONS",
+            "MethodResponses": [
+              {
+                "StatusCode": "200",
+                "ResponseParameters": {
+                  "method.response.header.Access-Control-Allow-Origin": true,
+                  "method.response.header.Access-Control-Allow-Headers": true,
+                  "method.response.header.Access-Control-Allow-Methods": true
+                },
+                "ResponseModels": {}
+              }
+            ],
+            "RequestParameters": {},
+            "Integration": {
+              "Type": "MOCK",
+              "RequestTemplates": {
+                "application/json": "{statusCode:200}"
+              },
+              "ContentHandling": "CONVERT_TO_TEXT",
+              "IntegrationResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": "'*'",
+                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                    "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,PUT'"
+                  },
+                  "ResponseTemplates": {
+                    "application/json": ""
+                  }
+                }
+              ]
+            },
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarResponse"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayMethodApiServiceDashrequestsIdVarNotesOptions": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "AuthorizationType": "NONE",
+            "HttpMethod": "OPTIONS",
+            "MethodResponses": [
+              {
+                "StatusCode": "200",
+                "ResponseParameters": {
+                  "method.response.header.Access-Control-Allow-Origin": true,
+                  "method.response.header.Access-Control-Allow-Headers": true,
+                  "method.response.header.Access-Control-Allow-Methods": true
+                },
+                "ResponseModels": {}
+              }
+            ],
+            "RequestParameters": {},
+            "Integration": {
+              "Type": "MOCK",
+              "RequestTemplates": {
+                "application/json": "{statusCode:200}"
+              },
+              "ContentHandling": "CONVERT_TO_TEXT",
+              "IntegrationResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": "'*'",
+                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                    "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,PUT'"
+                  },
+                  "ResponseTemplates": {
+                    "application/json": ""
+                  }
+                }
+              ]
+            },
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarNotes"
             },
             "RestApiId": {
               "Ref": "ApiGatewayRestApi"
@@ -5276,7 +7516,375 @@
             "ApiLambdaPermissionApiGateway"
           ]
         },
-        "ApiGatewayDeployment1772451868046": {
+        "ApiGatewayMethodApiServiceDashrequestsPost": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "HttpMethod": "POST",
+            "RequestParameters": {},
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequests"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ApiKeyRequired": "<REDACTED>",
+            "AuthorizationType": "NONE",
+            "Integration": {
+              "IntegrationHttpMethod": "POST",
+              "Type": "AWS_PROXY",
+              "Uri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            },
+            "MethodResponses": []
+          },
+          "DependsOn": [
+            "ApiLambdaPermissionApiGateway"
+          ]
+        },
+        "ApiGatewayMethodApiServiceDashrequestsGet": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "HttpMethod": "GET",
+            "RequestParameters": {},
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequests"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ApiKeyRequired": "<REDACTED>",
+            "AuthorizationType": "NONE",
+            "Integration": {
+              "IntegrationHttpMethod": "POST",
+              "Type": "AWS_PROXY",
+              "Uri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            },
+            "MethodResponses": []
+          },
+          "DependsOn": [
+            "ApiLambdaPermissionApiGateway"
+          ]
+        },
+        "ApiGatewayMethodApiServiceDashrequestsMineGet": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "HttpMethod": "GET",
+            "RequestParameters": {},
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsMine"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ApiKeyRequired": "<REDACTED>",
+            "AuthorizationType": "NONE",
+            "Integration": {
+              "IntegrationHttpMethod": "POST",
+              "Type": "AWS_PROXY",
+              "Uri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            },
+            "MethodResponses": []
+          },
+          "DependsOn": [
+            "ApiLambdaPermissionApiGateway"
+          ]
+        },
+        "ApiGatewayMethodApiServiceDashrequestsIdVarGet": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "HttpMethod": "GET",
+            "RequestParameters": {},
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ApiKeyRequired": "<REDACTED>",
+            "AuthorizationType": "NONE",
+            "Integration": {
+              "IntegrationHttpMethod": "POST",
+              "Type": "AWS_PROXY",
+              "Uri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            },
+            "MethodResponses": []
+          },
+          "DependsOn": [
+            "ApiLambdaPermissionApiGateway"
+          ]
+        },
+        "ApiGatewayMethodApiServiceDashrequestsIdVarStatusPut": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "HttpMethod": "PUT",
+            "RequestParameters": {},
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarStatus"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ApiKeyRequired": "<REDACTED>",
+            "AuthorizationType": "NONE",
+            "Integration": {
+              "IntegrationHttpMethod": "POST",
+              "Type": "AWS_PROXY",
+              "Uri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            },
+            "MethodResponses": []
+          },
+          "DependsOn": [
+            "ApiLambdaPermissionApiGateway"
+          ]
+        },
+        "ApiGatewayMethodApiServiceDashrequestsIdVarResponsePut": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "HttpMethod": "PUT",
+            "RequestParameters": {},
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarResponse"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ApiKeyRequired": "<REDACTED>",
+            "AuthorizationType": "NONE",
+            "Integration": {
+              "IntegrationHttpMethod": "POST",
+              "Type": "AWS_PROXY",
+              "Uri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            },
+            "MethodResponses": []
+          },
+          "DependsOn": [
+            "ApiLambdaPermissionApiGateway"
+          ]
+        },
+        "ApiGatewayMethodApiServiceDashrequestsIdVarNotesPut": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "HttpMethod": "PUT",
+            "RequestParameters": {},
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVarNotes"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ApiKeyRequired": "<REDACTED>",
+            "AuthorizationType": "NONE",
+            "Integration": {
+              "IntegrationHttpMethod": "POST",
+              "Type": "AWS_PROXY",
+              "Uri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            },
+            "MethodResponses": []
+          },
+          "DependsOn": [
+            "ApiLambdaPermissionApiGateway"
+          ]
+        },
+        "ApiGatewayMethodApiServiceDashrequestsIdVarDelete": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "HttpMethod": "DELETE",
+            "RequestParameters": {},
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceApiServiceDashrequestsIdVar"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ApiKeyRequired": "<REDACTED>",
+            "AuthorizationType": "NONE",
+            "Integration": {
+              "IntegrationHttpMethod": "POST",
+              "Type": "AWS_PROXY",
+              "Uri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            },
+            "MethodResponses": []
+          },
+          "DependsOn": [
+            "ApiLambdaPermissionApiGateway"
+          ]
+        },
+        "ApiGatewayDeployment1772534584961": {
           "Type": "AWS::ApiGateway::Deployment",
           "Properties": {
             "RestApiId": {
@@ -5297,6 +7905,12 @@
             "ApiGatewayMethodApiContactsMineOptions",
             "ApiGatewayMethodApiContactsIdVarOptions",
             "ApiGatewayMethodApiUploadsPresignOptions",
+            "ApiGatewayMethodApiServiceDashrequestsOptions",
+            "ApiGatewayMethodApiServiceDashrequestsMineOptions",
+            "ApiGatewayMethodApiServiceDashrequestsIdVarOptions",
+            "ApiGatewayMethodApiServiceDashrequestsIdVarStatusOptions",
+            "ApiGatewayMethodApiServiceDashrequestsIdVarResponseOptions",
+            "ApiGatewayMethodApiServiceDashrequestsIdVarNotesOptions",
             "ApiGatewayMethodGet",
             "ApiGatewayMethodApiAuthRegisterPost",
             "ApiGatewayMethodApiAuthConfirmPost",
@@ -5310,7 +7924,15 @@
             "ApiGatewayMethodApiContactsPost",
             "ApiGatewayMethodApiContactsIdVarPut",
             "ApiGatewayMethodApiContactsIdVarDelete",
-            "ApiGatewayMethodApiUploadsPresignPost"
+            "ApiGatewayMethodApiUploadsPresignPost",
+            "ApiGatewayMethodApiServiceDashrequestsPost",
+            "ApiGatewayMethodApiServiceDashrequestsGet",
+            "ApiGatewayMethodApiServiceDashrequestsMineGet",
+            "ApiGatewayMethodApiServiceDashrequestsIdVarGet",
+            "ApiGatewayMethodApiServiceDashrequestsIdVarStatusPut",
+            "ApiGatewayMethodApiServiceDashrequestsIdVarResponsePut",
+            "ApiGatewayMethodApiServiceDashrequestsIdVarNotesPut",
+            "ApiGatewayMethodApiServiceDashrequestsIdVarDelete"
           ]
         },
         "ApiLambdaPermissionApiGateway": {
@@ -5457,6 +8079,82 @@
             ]
           }
         },
+        "CognitoAdminGroup": {
+          "Type": "AWS::Cognito::UserPoolGroup",
+          "Properties": {
+            "GroupName": "admin",
+            "Description": "Administrator group with elevated permissions",
+            "UserPoolId": {
+              "Ref": "CognitoUserPool"
+            },
+            "Precedence": 0
+          }
+        },
+        "ServiceRequestsTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "daily-spend-manager-dev-service-requests",
+            "BillingMode": "PAY_PER_REQUEST",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "requestId",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "userId",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "status",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "createdAt",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "requestId",
+                "KeyType": "HASH"
+              }
+            ],
+            "GlobalSecondaryIndexes": [
+              {
+                "IndexName": "userId-index",
+                "KeySchema": [
+                  {
+                    "AttributeName": "userId",
+                    "KeyType": "HASH"
+                  },
+                  {
+                    "AttributeName": "createdAt",
+                    "KeyType": "RANGE"
+                  }
+                ],
+                "Projection": {
+                  "ProjectionType": "ALL"
+                }
+              },
+              {
+                "IndexName": "status-index",
+                "KeySchema": [
+                  {
+                    "AttributeName": "status",
+                    "KeyType": "HASH"
+                  },
+                  {
+                    "AttributeName": "createdAt",
+                    "KeyType": "RANGE"
+                  }
+                ],
+                "Projection": {
+                  "ProjectionType": "ALL"
+                }
+              }
+            ]
+          }
+        },
         "CognitoUserPoolClient": {
           "Type": "AWS::Cognito::UserPoolClient",
           "Properties": {
@@ -5488,7 +8186,7 @@
         "ApiLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "ApiLambdaVersionbT43eHXk6MNpp5QpHArz0ig0y7OemtFZWVHrdLjag"
+            "Ref": "ApiLambdaVersionHIDna2cEXq4Ys9JIhuxWcgECVZerQi8hgXl3mcolYs"
           },
           "Export": {
             "Name": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"

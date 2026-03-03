@@ -25,7 +25,7 @@ const QUICK_ACTIONS = [
 ];
 
 export default function ChatBot() {
-  const { user, token, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -51,9 +51,9 @@ export default function ChatBot() {
 
   // Fetch user activity from AWS backend
   const fetchUserActivity = useCallback(async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
-      const data = await api.contacts.mine(token);
+      const data = await api.contacts.mine();
       const contacts = Array.isArray(data) ? data : data.contacts || [];
       const services = [...new Set(contacts.map((c: { service?: string }) => c.service).filter(Boolean))] as string[];
       setUserActivity({
@@ -63,7 +63,7 @@ export default function ChatBot() {
     } catch (err) {
       console.error('Failed to fetch user activity:', err);
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isOpen && isAuthenticated && !userActivity) {

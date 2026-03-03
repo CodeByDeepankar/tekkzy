@@ -27,6 +27,7 @@ export default function Services() {
                                 <li style={{fontSize: '0.9rem', color: 'var(--text-main)'}}>• Cloud Migration & Integration</li>
                                 <li style={{fontSize: '0.9rem', color: 'var(--text-main)'}}>• Secure API Development</li>
                             </ul>
+                            <Link href="/request?service=custom+cloud+software" className="btn btn-primary" style={{marginTop: '16px', display: 'inline-block', fontSize: '0.9rem'}}>Request This Service</Link>
                         </div>
                     </div>
 
@@ -44,6 +45,7 @@ export default function Services() {
                                 <li style={{fontSize: '0.9rem', color: 'var(--text-main)'}}>• Inventory & HR Management</li>
                                 <li style={{fontSize: '0.9rem', color: 'var(--text-main)'}}>• CRM Implementations</li>
                             </ul>
+                            <Link href="/request?service=business+automation" className="btn btn-primary" style={{marginTop: '16px', display: 'inline-block', fontSize: '0.9rem'}}>Request This Service</Link>
                         </div>
                     </div>
 
@@ -61,6 +63,7 @@ export default function Services() {
                                 <li style={{fontSize: '0.9rem', color: 'var(--text-main)'}}>• PPC & Lead Generation</li>
                                 <li style={{fontSize: '0.9rem', color: 'var(--text-main)'}}>• Brand Identity Design</li>
                             </ul>
+                            <Link href="/request?service=digital+marketing" className="btn btn-primary" style={{marginTop: '16px', display: 'inline-block', fontSize: '0.9rem'}}>Request This Service</Link>
                         </div>
                     </div>
 
@@ -78,6 +81,7 @@ export default function Services() {
                                 <li style={{fontSize: '0.9rem', color: 'var(--text-main)'}}>• Regular Backups</li>
                                 <li style={{fontSize: '0.9rem', color: 'var(--text-main)'}}>• Technical Troubleshooting</li>
                             </ul>
+                            <Link href="/request?service=website+maintenance" className="btn btn-primary" style={{marginTop: '16px', display: 'inline-block', fontSize: '0.9rem'}}>Request This Service</Link>
                         </div>
                     </div>
 
