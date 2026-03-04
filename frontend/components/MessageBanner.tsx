@@ -28,7 +28,7 @@ export default function MessageBanner() {
       try {
         const data = await api.contacts.list();
         if (Array.isArray(data)) {
-          setRequests(data.slice(0, 3));
+          setRequests(data);
         }
       } catch (error) {
         console.error("Failed to fetch requests", error);
