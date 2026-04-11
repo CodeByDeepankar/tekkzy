@@ -12,6 +12,15 @@ async function getIdToken(): Promise<string> {
   return token;
 }
 
+async function getOptionalIdToken(): Promise<string | null> {
+  try {
+    const session = await fetchAuthSession();
+    return session.tokens?.idToken?.toString() || null;
+  } catch {
+    return null;
+  }
+}
+
 async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const token = await getIdToken();
   const headers = {
@@ -108,7 +117,12 @@ export const api = {
   contacts: {
     list: async () => {
       if (!API_BASE_URL) throw new Error('API base URL is not configured');
-      const res = await authFetch(`${API_BASE_URL}/api/contacts`);
+      const token = await getOptionalIdToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const res = await fetch(`${API_BASE_URL}/api/contacts`, { headers });
       if (!res.ok) throw new Error('Failed to fetch contacts');
       return res.json();
     },

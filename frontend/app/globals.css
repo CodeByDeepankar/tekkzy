@@ -1189,3 +1189,54 @@ footer {
     right: 16px;
   }
 }
+
+/* Custom Cursor */
+@media (hover: hover) and (pointer: fine) {
+  body.has-custom-cursor,
+  body.has-custom-cursor a,
+  body.has-custom-cursor button,
+  body.has-custom-cursor input,
+  body.has-custom-cursor textarea,
+  body.has-custom-cursor select,
+  body.has-custom-cursor label,
+  body.has-custom-cursor [role="button"] {
+    cursor: none !important;
+  }
+}
+
+.custom-cursor,
+.custom-cursor-glow {
+  position: fixed;
+  top: -100px;
+  left: -100px;
+  transform: none;
+  pointer-events: none !important;
+  user-select: none;
+  z-index: 12000;
+  opacity: 0;
+  will-change: left, top, transform, opacity;
+}
+
+.custom-cursor {
+  width: 40px;
+  height: 40px;
+  transform: translate(0, 0);
+  background: url("/cursor.png") center / contain no-repeat;
+  filter: drop-shadow(0 4px 14px rgba(124, 58, 237, 0.55));
+}
+
+.custom-cursor-glow {
+  width: 58px;
+  height: 58px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.28) 0%, rgba(124, 58, 237, 0) 70%);
+  mix-blend-mode: screen;
+}
+
+@media (max-width: 900px), (hover: none), (pointer: coarse) {
+  .custom-cursor,
+  .custom-cursor-glow {
+    display: none;
+  }
+}
