@@ -8,12 +8,14 @@
       "name": "aws",
       "runtime": "nodejs20.x",
       "region": "us-east-1",
+      "stage": "dev",
+      "profile": "default",
       "environment": {
         "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
         "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
         "DYNAMODB_SERVICE_REQUESTS_TABLE": "daily-spend-manager-dev-service-requests",
         "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
-        "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435",
+        "S3_BUCKET": "daily-spend-manager-dev-uploads-083304596336",
         "COGNITO_USER_POOL_ID": {
           "Ref": "CognitoUserPool"
         },
@@ -51,7 +53,7 @@
                 "s3:GetObject",
                 "s3:DeleteObject"
               ],
-              "Resource": "arn:aws:s3:::daily-spend-manager-dev-uploads-542829982435/*"
+              "Resource": "arn:aws:s3:::daily-spend-manager-dev-uploads-083304596336/*"
             },
             {
               "Effect": "Allow",
@@ -74,7 +76,6 @@
           ]
         }
       },
-      "stage": "dev",
       "versionFunctions": true,
       "compiledCloudFormationTemplate": {
         "AWSTemplateFormatVersion": "2010-09-09",
@@ -177,8 +178,8 @@
             "Type": "AWS::Lambda::Function",
             "Properties": {
               "Code": {
-                "S3Bucket": "serverless-framework-deployments-us-east-1-c7c94560-c520",
-                "S3Key": "serverless/daily-spend-manager/dev/1772534612894-2026-03-03T10:43:32.894Z/daily-spend-manager.zip"
+                "S3Bucket": "serverless-framework-deployments-us-east-1-ce7eaa24-370b",
+                "S3Key": "serverless/daily-spend-manager/dev/1775898490439-2026-04-11T09:08:10.439Z/daily-spend-manager.zip"
               },
               "Handler": "lambda.handler",
               "Runtime": "nodejs20.x",
@@ -191,7 +192,7 @@
                   "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
                   "DYNAMODB_SERVICE_REQUESTS_TABLE": "daily-spend-manager-dev-service-requests",
                   "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
-                  "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435",
+                  "S3_BUCKET": "daily-spend-manager-dev-uploads-083304596336",
                   "COGNITO_USER_POOL_ID": {
                     "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
                   },
@@ -212,14 +213,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersionHIDna2cEXq4Ys9JIhuxWcgECVZerQi8hgXl3mcolYs": {
+          "ApiLambdaVersion7jKdvjOFNCMfRdLV4Gf6iM9A9CRYY7XQTkfw75xHw": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "QoW6hq3PYiEpYLgtYV+7wp4vegfaHNSciVcetwUyQhI="
+              "CodeSha256": "OF7Iz59MI4iq/AU5HVkOi3022IjpLp9wJMMadER1LUU="
             }
           },
           "ApiGatewayRestApi": {
@@ -2305,7 +2306,7 @@
               "ApiLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1772534584961": {
+          "ApiGatewayDeployment1775898476487": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -2452,7 +2453,7 @@
           "UploadsBucket": {
             "Type": "AWS::S3::Bucket",
             "Properties": {
-              "BucketName": "daily-spend-manager-dev-uploads-542829982435",
+              "BucketName": "daily-spend-manager-dev-uploads-083304596336",
               "CorsConfiguration": {
                 "CorsRules": [
                   {
@@ -2609,7 +2610,7 @@
         },
         "Outputs": {
           "ServerlessDeploymentBucketName": {
-            "Value": "serverless-framework-deployments-us-east-1-c7c94560-c520",
+            "Value": "serverless-framework-deployments-us-east-1-ce7eaa24-370b",
             "Export": {
               "Name": "sls-daily-spend-manager-dev-ServerlessDeploymentBucketName"
             }
@@ -2617,7 +2618,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersionHIDna2cEXq4Ys9JIhuxWcgECVZerQi8hgXl3mcolYs"
+              "Ref": "ApiLambdaVersion7jKdvjOFNCMfRdLV4Gf6iM9A9CRYY7XQTkfw75xHw"
             },
             "Export": {
               "Name": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
@@ -2668,6 +2669,9 @@
         }
       },
       "vpc": {}
+    },
+    "custom": {
+      "awsProfile": "default"
     },
     "plugins": [
       "serverless-offline"
@@ -3212,7 +3216,7 @@
         "timeout": 6,
         "runtime": "nodejs20.x",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersionHIDna2cEXq4Ys9JIhuxWcgECVZerQi8hgXl3mcolYs"
+        "versionLogicalId": "ApiLambdaVersion7jKdvjOFNCMfRdLV4Gf6iM9A9CRYY7XQTkfw75xHw"
       }
     },
     "resources": {
@@ -3276,7 +3280,7 @@
         "UploadsBucket": {
           "Type": "AWS::S3::Bucket",
           "Properties": {
-            "BucketName": "daily-spend-manager-dev-uploads-542829982435",
+            "BucketName": "daily-spend-manager-dev-uploads-083304596336",
             "CorsConfiguration": {
               "CorsRules": [
                 {
@@ -3453,9 +3457,10 @@
     "configValidationMode": "warn",
     "serviceFilename": "serverless",
     "initialServerlessConfig": {
-      "org": "deepankar68",
-      "app": "daily-spend-manager",
       "service": "daily-spend-manager",
+      "custom": {
+        "$ref": "$[\"service\"][\"custom\"]"
+      },
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
       },
@@ -3469,15 +3474,13 @@
         "$ref": "$[\"service\"][\"resources\"]"
       }
     },
-    "app": "daily-spend-manager",
     "appId": null,
-    "org": "deepankar68",
     "orgId": null,
     "layers": {},
-    "artifact": "/home/deep/coding/tekkzy/backend/.serverless/daily-spend-manager.zip"
+    "artifact": "D:\\Coding\\tekkzy\\backend\\.serverless\\daily-spend-manager.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/daily-spend-manager/dev/1772534612894-2026-03-03T10:43:32.894Z",
+    "artifactDirectoryName": "serverless/daily-spend-manager/dev/1775898490439-2026-04-11T09:08:10.439Z",
     "artifact": "daily-spend-manager.zip"
   }
 }

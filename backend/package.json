@@ -6,12 +6,18 @@
   "scripts": {
     "dev": "nodemon index.js",
     "test": "jest --verbose --forceExit --detectOpenHandles",
-    "test:coverage": "jest --verbose --forceExit --detectOpenHandles --coverage"
+    "test:coverage": "jest --verbose --forceExit --detectOpenHandles --coverage",
+    "migrate:users:dry": "node scripts/migrate-users-to-cognito-sub.js",
+    "migrate:users:apply": "node scripts/migrate-users-to-cognito-sub.js --apply"
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/__tests__/**/*.test.js"],
-    "setupFiles": ["./__tests__/setup.js"]
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
+    "setupFiles": [
+      "./__tests__/setup.js"
+    ]
   },
   "keywords": [],
   "author": "",

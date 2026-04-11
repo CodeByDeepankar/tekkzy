@@ -1,0 +1,18 @@
+{
+  "httpMethod": "DELETE",
+  "path": "/api/contacts/0e88a504-5395-4fc6-97a0-62c80ff55e2b",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "queryStringParameters": null,
+  "pathParameters": {
+    "id": "0e88a504-5395-4fc6-97a0-62c80ff55e2b"
+  },
+  "body": null,
+  "isBase64Encoded": false,
+  "requestContext": {
+    "stage": "dev",
+    "resourcePath": "/api/contacts/{id}",
+    "httpMethod": "DELETE"
+  }
+}

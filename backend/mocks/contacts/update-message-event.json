@@ -1,0 +1,18 @@
+{
+  "httpMethod": "PUT",
+  "path": "/api/contacts/5937f835-d634-4a7f-af75-de5ea348da1f",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "queryStringParameters": null,
+  "pathParameters": {
+    "id": "5937f835-d634-4a7f-af75-de5ea348da1f"
+  },
+  "body": "{\"service\":\"Web Application\",\"message\":\"Please also add an admin dashboard and user login.\"}",
+  "isBase64Encoded": false,
+  "requestContext": {
+    "stage": "dev",
+    "resourcePath": "/api/contacts/{id}",
+    "httpMethod": "PUT"
+  }
+}

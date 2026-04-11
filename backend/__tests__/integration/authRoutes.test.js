@@ -30,6 +30,7 @@ jest.mock('@aws-sdk/lib-dynamodb', () => ({
   ScanCommand: jest.fn((p) => p),
   GetCommand: jest.fn((p) => p),
   DeleteCommand: jest.fn((p) => p),
+  UpdateCommand: jest.fn((p) => p),
 }));
 
 jest.mock('../../config/dynamo', () => ({

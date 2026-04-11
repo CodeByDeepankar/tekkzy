@@ -59,6 +59,8 @@ describe('protect middleware', () => {
     expect(mockVerify).toHaveBeenCalledWith('valid-token-123');
     expect(req.user).toEqual({
       id: mockJwtPayload.sub,
+      userId: mockJwtPayload.sub,
+      sub: mockJwtPayload.sub,
       name: mockJwtPayload.name,
       email: mockJwtPayload.email,
     });
@@ -117,6 +119,8 @@ describe('protect middleware', () => {
 
     expect(req.user).toEqual({
       id: 'sub-no-name',
+      userId: 'sub-no-name',
+      sub: 'sub-no-name',
       name: '',
       email: 'noname@test.com',
     });

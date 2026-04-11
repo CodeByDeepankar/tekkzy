@@ -194,10 +194,10 @@ describe('POST /api/contacts', () => {
 });
 
 // ════════════════════════════════════════════════════════════════════════
-// PUT /api/contacts/:id (auth required)
+// PUT /api/contacts/:id (contactId based)
 // ════════════════════════════════════════════════════════════════════════
 describe('PUT /api/contacts/:id', () => {
-  it('should update a contact owned by the user', async () => {
+  it('should update a contact using contactId without auth token', async () => {
     const updatedItem = { ...mockContact, service: 'Updated Service', message: 'Updated msg', updatedAt: '2026-02-28T00:00:00Z' };
     mockDocClientSend
       .mockResolvedValueOnce({ Item: mockContact })     // GetCommand
@@ -205,7 +205,6 @@ describe('PUT /api/contacts/:id', () => {
 
     const res = await request(app)
       .put(`/api/contacts/${mockContact.contactId}`)
-      .set('Authorization', 'Bearer valid-token')
       .send({ service: 'Updated Service', message: 'Updated msg' });
 
     expect(res.status).toBe(200);
@@ -218,7 +217,6 @@ describe('PUT /api/contacts/:id', () => {
 
     const res = await request(app)
       .put(`/api/contacts/${mockContact.contactId}`)
-      .set('Authorization', 'Bearer valid-token')
       .send({});
 
     expect(res.status).toBe(400);
@@ -230,45 +228,23 @@ describe('PUT /api/contacts/:id', () => {
 
     const res = await request(app)
       .put('/api/contacts/nonexistent-id')
-      .set('Authorization', 'Bearer valid-token')
       .send({ message: 'update' });
 
     expect(res.status).toBe(404);
   });
-
-  it('should return 403 when user does not own the contact', async () => {
-    const otherUserContact = { ...mockContact, userId: 'other-user-id' };
-    mockDocClientSend.mockResolvedValueOnce({ Item: otherUserContact });
-
-    const res = await request(app)
-      .put(`/api/contacts/${otherUserContact.contactId}`)
-      .set('Authorization', 'Bearer valid-token')
-      .send({ message: 'hack' });
-
-    expect(res.status).toBe(403);
-  });
-
-  it('should return 401 when not authenticated', async () => {
-    const res = await request(app)
-      .put('/api/contacts/some-id')
-      .send({ message: 'update' });
-
-    expect(res.status).toBe(401);
-  });
 });
 
 // ════════════════════════════════════════════════════════════════════════
-// DELETE /api/contacts/:id (auth required)
+// DELETE /api/contacts/:id (contactId based)
 // ════════════════════════════════════════════════════════════════════════
 describe('DELETE /api/contacts/:id', () => {
-  it('should delete a contact owned by the user', async () => {
+  it('should delete a contact using contactId without auth token', async () => {
     mockDocClientSend
       .mockResolvedValueOnce({ Item: mockContact })   // GetCommand
       .mockResolvedValueOnce({});                       // DeleteCommand
 
     const res = await request(app)
-      .delete(`/api/contacts/${mockContact.contactId}`)
-      .set('Authorization', 'Bearer valid-token');
+      .delete(`/api/contacts/${mockContact.contactId}`);
 
     expect(res.status).toBe(200);
     expect(res.body.message).toBe('Message deleted');
@@ -278,26 +254,8 @@ describe('DELETE /api/contacts/:id', () => {
     mockDocClientSend.mockResolvedValueOnce({ Item: null });
 
     const res = await request(app)
-      .delete('/api/contacts/nonexistent-id')
-      .set('Authorization', 'Bearer valid-token');
+      .delete('/api/contacts/nonexistent-id');
 
     expect(res.status).toBe(404);
-  });
-
-  it('should return 403 when user does not own the contact', async () => {
-    const otherUserContact = { ...mockContact, userId: 'other-user-id' };
-    mockDocClientSend.mockResolvedValueOnce({ Item: otherUserContact });
-
-    const res = await request(app)
-      .delete(`/api/contacts/${otherUserContact.contactId}`)
-      .set('Authorization', 'Bearer valid-token');
-
-    expect(res.status).toBe(403);
-  });
-
-  it('should return 401 when not authenticated', async () => {
-    const res = await request(app).delete('/api/contacts/some-id');
-
-    expect(res.status).toBe(401);
   });
 });

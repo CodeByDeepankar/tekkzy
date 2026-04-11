@@ -12,7 +12,7 @@ const { protect } = require('../middleware/authMiddleware');
 router.get('/', getContacts);
 router.get('/mine', protect, getUserContacts);
 router.post('/', protect, createContact);
-router.put('/:id', protect, updateContact);
-router.delete('/:id', protect, deleteContact);
+router.put('/:id', updateContact);
+router.delete('/:id', deleteContact);
 
 module.exports = router;

@@ -68,7 +68,6 @@ Our platform showcases capabilities in:
 | [Next.js 16](https://nextjs.org/) | React Framework with App Router |
 | TypeScript | Type-safe JavaScript |
 | Tailwind CSS v4 | Utility-first styling |
-| Shadcn UI | Beautiful component library |
 | Lucide React | Icon system |
 | Framer Motion | Smooth animations |
 | React Bits | Carousel components |

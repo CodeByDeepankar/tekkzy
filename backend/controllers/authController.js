@@ -8,17 +8,45 @@ const {
     ForgotPasswordCommand,
     ConfirmForgotPasswordCommand,
 } = require('@aws-sdk/client-cognito-identity-provider');
-const { PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
+const { UpdateCommand } = require('@aws-sdk/lib-dynamodb');
 const { docClient } = require('../config/dynamo');
 
 const USERS_TABLE = process.env.DYNAMODB_USERS_TABLE;
-const USERS_EMAIL_INDEX = process.env.DYNAMODB_USERS_EMAIL_INDEX || 'email-index';
 
 const cognitoClient = new CognitoIdentityProviderClient({
     region: process.env.COGNITO_REGION || process.env.AWS_REGION || 'us-east-1',
 });
 
 const CLIENT_ID = process.env.COGNITO_CLIENT_ID;
+
+const syncUserToDynamo = async ({ userSub, name, email }) => {
+    const now = new Date().toISOString();
+
+    await docClient.send(
+        new UpdateCommand({
+            TableName: USERS_TABLE,
+            Key: { userId: userSub },
+            // Keep Cognito sub as the canonical user id and ensure legacy passwordHash is removed.
+            UpdateExpression:
+                'SET #name = :name, #email = :email, #lastLogin = :lastLogin, #updatedAt = :updatedAt, #createdAt = if_not_exists(#createdAt, :createdAt) REMOVE #passwordHash',
+            ExpressionAttributeNames: {
+                '#name': 'name',
+                '#email': 'email',
+                '#lastLogin': 'lastLogin',
+                '#updatedAt': 'updatedAt',
+                '#createdAt': 'createdAt',
+                '#passwordHash': 'passwordHash',
+            },
+            ExpressionAttributeValues: {
+                ':name': name || '',
+                ':email': email,
+                ':lastLogin': now,
+                ':updatedAt': now,
+                ':createdAt': now,
+            },
+        })
+    );
+};
 
 const registerUser = async (req, res) => {
     try {
@@ -135,6 +163,11 @@ const loginUser = async (req, res) => {
         });
 
         const result = await cognitoClient.send(command);
+
+        if (!result.AuthenticationResult) {
+            return res.status(500).json({ message: 'Authentication result missing from Cognito response' });
+        }
+
         const { IdToken, AccessToken, RefreshToken } = result.AuthenticationResult;
 
         // Get user attributes from Cognito
@@ -149,24 +182,19 @@ const loginUser = async (req, res) => {
 
         // Sync user to DynamoDB for app-specific data
         const userSub = attributes.sub;
+
+        if (!userSub) {
+            return res.status(500).json({ message: 'Cognito user sub not found in token attributes' });
+        }
+
         try {
-            await docClient.send(
-                new PutCommand({
-                    TableName: USERS_TABLE,
-                    Item: {
-                        userId: userSub,
-                        name: attributes.name || '',
-                        email: normalizedEmail,
-                        lastLogin: new Date().toISOString(),
-                    },
-                    ConditionExpression: 'attribute_not_exists(userId)',
-                })
-            );
-        } catch (putError) {
-            // User already exists in DynamoDB, that's fine
-            if (putError.name !== 'ConditionalCheckFailedException') {
-                console.warn('DynamoDB sync warning:', putError.message);
-            }
+            await syncUserToDynamo({
+                userSub,
+                name: attributes.name || '',
+                email: normalizedEmail,
+            });
+        } catch (syncError) {
+            console.warn('DynamoDB sync warning:', syncError.message);
         }
 
         res.json({

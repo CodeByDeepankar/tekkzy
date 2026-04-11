@@ -24,6 +24,7 @@ jest.mock('@aws-sdk/client-cognito-identity-provider', () => ({
 jest.mock('@aws-sdk/lib-dynamodb', () => ({
   PutCommand: jest.fn((params) => ({ _type: 'Put', ...params })),
   QueryCommand: jest.fn((params) => ({ _type: 'Query', ...params })),
+  UpdateCommand: jest.fn((params) => ({ _type: 'Update', ...params })),
 }));
 
 jest.mock('../../config/dynamo', () => ({

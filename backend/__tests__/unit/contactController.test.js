@@ -342,21 +342,6 @@ describe('updateContact', () => {
     expect(res.json).toHaveBeenCalledWith({ message: 'Message not found' });
   });
 
-  it('should return 403 when user does not own the contact', async () => {
-    const otherContact = { ...mockContact, userId: 'other-user-id' };
-    mockDocClientSend.mockResolvedValueOnce({ Item: otherContact });
-
-    const req = buildReq({ message: 'hack' }, { id: otherContact.contactId });
-    const res = buildRes();
-
-    await updateContact(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({
-      message: 'Not authorized to update this message',
-    });
-  });
-
   it('should return 500 on DynamoDB error', async () => {
     mockDocClientSend.mockRejectedValueOnce(new Error('Update failed'));
 
@@ -418,21 +403,6 @@ describe('deleteContact', () => {
 
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({ message: 'Message not found' });
-  });
-
-  it('should return 403 when user does not own the contact', async () => {
-    const otherContact = { ...mockContact, userId: 'other-user-id' };
-    mockDocClientSend.mockResolvedValueOnce({ Item: otherContact });
-
-    const req = buildReq({}, { id: otherContact.contactId });
-    const res = buildRes();
-
-    await deleteContact(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({
-      message: 'Not authorized to delete this message',
-    });
   });
 
   it('should return 500 on error', async () => {

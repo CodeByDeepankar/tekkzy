@@ -157,7 +157,7 @@ const createContact = async (req, res) => {
 
 // @desc    Delete contact
 // @route   DELETE /api/contacts/:id
-// @access  Private
+// @access  Public (contactId based)
 const deleteContact = async (req, res) => {
     try {
         const { id } = req.params;
@@ -175,10 +175,6 @@ const deleteContact = async (req, res) => {
 
         if (!existing.Item) {
             return res.status(404).json({ message: 'Message not found' });
-        }
-
-        if (existing.Item.userId !== req.user.id) {
-            return res.status(403).json({ message: 'Not authorized to delete this message' });
         }
 
         if (existing.Item.imageKey && BUCKET) {
@@ -209,7 +205,7 @@ const deleteContact = async (req, res) => {
 
 // @desc    Update contact
 // @route   PUT /api/contacts/:id
-// @access  Private
+// @access  Public (contactId based)
 const updateContact = async (req, res) => {
     try {
         const { id } = req.params;
@@ -227,10 +223,6 @@ const updateContact = async (req, res) => {
 
         if (!existing.Item) {
             return res.status(404).json({ message: 'Message not found' });
-        }
-
-        if (existing.Item.userId !== req.user.id) {
-            return res.status(403).json({ message: 'Not authorized to update this message' });
         }
 
         const { service, message } = req.body;

@@ -1,22 +1,25 @@
 {
-  "/home/deep/coding/tekkzy/backend/serverless.yml": {
-    "versionFramework": "4.33.0",
-    "servicePath": "/home/deep/coding/tekkzy/backend/serverless.yml",
+  "D:\\Coding\\tekkzy\\backend\\serverless.yml": {
+    "versionFramework": "4.34.0",
+    "servicePath": "D:\\Coding\\tekkzy\\backend\\serverless.yml",
     "serviceConfigFileName": "serverless.yml",
     "service": {
-      "org": "deepankar68",
-      "app": "daily-spend-manager",
       "service": "daily-spend-manager",
+      "custom": {
+        "awsProfile": "default"
+      },
       "provider": {
         "name": "aws",
         "runtime": "nodejs20.x",
         "region": "us-east-1",
+        "stage": "dev",
+        "profile": "default",
         "environment": {
           "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
           "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
           "DYNAMODB_SERVICE_REQUESTS_TABLE": "daily-spend-manager-dev-service-requests",
           "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
-          "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435",
+          "S3_BUCKET": "daily-spend-manager-dev-uploads-083304596336",
           "COGNITO_USER_POOL_ID": {
             "Ref": "CognitoUserPool"
           },
@@ -55,7 +58,7 @@
                   "s3:GetObject",
                   "s3:DeleteObject"
                 ],
-                "Resource": "arn:aws:s3:::daily-spend-manager-dev-uploads-542829982435/*"
+                "Resource": "arn:aws:s3:::daily-spend-manager-dev-uploads-083304596336/*"
               },
               {
                 "Effect": "Allow",
@@ -78,7 +81,6 @@
             ]
           }
         },
-        "stage": "dev",
         "versionFunctions": true
       },
       "functions": {
@@ -307,7 +309,7 @@
           "UploadsBucket": {
             "Type": "AWS::S3::Bucket",
             "Properties": {
-              "BucketName": "daily-spend-manager-dev-uploads-542829982435",
+              "BucketName": "daily-spend-manager-dev-uploads-083304596336",
               "CorsConfiguration": {
                 "CorsRules": [
                   {
@@ -476,12 +478,14 @@
       "name": "aws",
       "runtime": "nodejs20.x",
       "region": "us-east-1",
+      "stage": "dev",
+      "profile": "default",
       "environment": {
         "DYNAMODB_USERS_TABLE": "daily-spend-manager-dev-users",
         "DYNAMODB_CONTACTS_TABLE": "daily-spend-manager-dev-contacts",
         "DYNAMODB_SERVICE_REQUESTS_TABLE": "daily-spend-manager-dev-service-requests",
         "DYNAMODB_USERS_EMAIL_INDEX": "email-index",
-        "S3_BUCKET": "daily-spend-manager-dev-uploads-542829982435",
+        "S3_BUCKET": "daily-spend-manager-dev-uploads-083304596336",
         "COGNITO_USER_POOL_ID": {
           "Ref": "CognitoUserPool"
         },
@@ -520,7 +524,7 @@
                 "s3:GetObject",
                 "s3:DeleteObject"
               ],
-              "Resource": "arn:aws:s3:::daily-spend-manager-dev-uploads-542829982435/*"
+              "Resource": "arn:aws:s3:::daily-spend-manager-dev-uploads-083304596336/*"
             },
             {
               "Effect": "Allow",
@@ -543,66 +547,62 @@
           ]
         }
       },
-      "stage": "dev",
       "versionFunctions": true
     },
     "dashboard": {
-      "isEnabledForService": true,
+      "isEnabledForService": false,
       "requiredAuthentication": false,
-      "orgFeaturesInUse": {
-        "providers": false,
-        "monitoring": false
-      },
+      "orgFeaturesInUse": null,
       "orgObservabilityIntegrations": null,
-      "serviceAppId": "bwP7dQqmbW0zgnDRH8",
+      "serviceAppId": null,
       "serviceProvider": null,
       "instanceParameters": null
     },
-    "serviceRawFile": "# serverless.yml\norg: deepankar68\napp: daily-spend-manager\nservice: daily-spend-manager\n\nprovider:\n  name: aws\n  runtime: nodejs20.x\n  region: us-east-1\n  environment:\n    DYNAMODB_USERS_TABLE: ${self:service}-${sls:stage}-users\n    DYNAMODB_CONTACTS_TABLE: ${self:service}-${sls:stage}-contacts\n    DYNAMODB_SERVICE_REQUESTS_TABLE: ${self:service}-${sls:stage}-service-requests\n    DYNAMODB_USERS_EMAIL_INDEX: email-index\n    S3_BUCKET: ${self:service}-${sls:stage}-uploads-${aws:accountId}\n    COGNITO_USER_POOL_ID:\n      Ref: CognitoUserPool\n    COGNITO_CLIENT_ID:\n      Ref: CognitoUserPoolClient\n    COGNITO_REGION: ${self:provider.region}\n  iam:\n    role:\n      statements:\n        - Effect: Allow\n          Action:\n            - dynamodb:PutItem\n            - dynamodb:GetItem\n            - dynamodb:Query\n            - dynamodb:Scan\n            - dynamodb:DeleteItem\n            - dynamodb:UpdateItem\n          Resource:\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users/index/email-index\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-contacts\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests/index/userId-index\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests/index/status-index\n        - Effect: Allow\n          Action:\n            - s3:PutObject\n            - s3:GetObject\n            - s3:DeleteObject\n          Resource:\n            - arn:aws:s3:::${self:service}-${sls:stage}-uploads-${aws:accountId}/*\n        - Effect: Allow\n          Action:\n            - cognito-idp:AdminGetUser\n            - cognito-idp:AdminCreateUser\n            - cognito-idp:AdminDeleteUser\n            - cognito-idp:AdminAddUserToGroup\n            - cognito-idp:AdminListGroupsForUser\n          Resource:\n            - Fn::GetAtt: [CognitoUserPool, Arn]\n\nfunctions:\n  api:\n    handler: lambda.handler\n    events:\n      # Root\n      - http:\n          path: /\n          method: GET\n          cors: true\n\n      # Auth routes\n      - http:\n          path: /api/auth/register\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/confirm\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/resend-code\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/login\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/forgot-password\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/confirm-forgot-password\n          method: POST\n          cors: true\n      - http:\n          path: /api/auth/me\n          method: GET\n          cors: true\n\n      # Contact routes\n      - http:\n          path: /api/contacts\n          method: GET\n          cors: true\n      - http:\n          path: /api/contacts/mine\n          method: GET\n          cors: true\n      - http:\n          path: /api/contacts\n          method: POST\n          cors: true\n      - http:\n          path: /api/contacts/{id}\n          method: PUT\n          cors: true\n      - http:\n          path: /api/contacts/{id}\n          method: DELETE\n          cors: true\n\n      # Upload routes\n      - http:\n          path: /api/uploads/presign\n          method: POST\n          cors: true\n\n      # Service Request routes\n      - http:\n          path: /api/service-requests\n          method: POST\n          cors: true\n      - http:\n          path: /api/service-requests\n          method: GET\n          cors: true\n      - http:\n          path: /api/service-requests/mine\n          method: GET\n          cors: true\n      - http:\n          path: /api/service-requests/{id}\n          method: GET\n          cors: true\n      - http:\n          path: /api/service-requests/{id}/status\n          method: PUT\n          cors: true\n      - http:\n          path: /api/service-requests/{id}/response\n          method: PUT\n          cors: true\n      - http:\n          path: /api/service-requests/{id}/notes\n          method: PUT\n          cors: true\n      - http:\n          path: /api/service-requests/{id}\n          method: DELETE\n          cors: true\n\nplugins:\n  - serverless-offline\n\nresources:\n  Resources:\n    UsersTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${self:service}-${sls:stage}-users\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: userId\n            AttributeType: S\n          - AttributeName: email\n            AttributeType: S\n        KeySchema:\n          - AttributeName: userId\n            KeyType: HASH\n        GlobalSecondaryIndexes:\n          - IndexName: email-index\n            KeySchema:\n              - AttributeName: email\n                KeyType: HASH\n            Projection:\n              ProjectionType: ALL\n\n    ContactsTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${self:service}-${sls:stage}-contacts\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: contactId\n            AttributeType: S\n        KeySchema:\n          - AttributeName: contactId\n            KeyType: HASH\n\n    UploadsBucket:\n      Type: AWS::S3::Bucket\n      Properties:\n        BucketName: ${self:service}-${sls:stage}-uploads-${aws:accountId}\n        CorsConfiguration:\n          CorsRules:\n            - AllowedOrigins:\n                - '*'\n              AllowedHeaders:\n                - '*'\n              AllowedMethods:\n                - PUT\n                - POST\n\n    CognitoUserPool:\n      Type: AWS::Cognito::UserPool\n      Properties:\n        UserPoolName: ${self:service}-${sls:stage}-user-pool\n        UsernameAttributes:\n          - email\n        AutoVerifiedAttributes:\n          - email\n        Policies:\n          PasswordPolicy:\n            MinimumLength: 8\n            RequireLowercase: true\n            RequireNumbers: true\n            RequireSymbols: false\n            RequireUppercase: true\n        Schema:\n          - Name: name\n            AttributeDataType: String\n            Mutable: true\n            Required: false\n          - Name: email\n            AttributeDataType: String\n            Mutable: false\n            Required: true\n\n    CognitoAdminGroup:\n      Type: AWS::Cognito::UserPoolGroup\n      Properties:\n        GroupName: admin\n        Description: Administrator group with elevated permissions\n        UserPoolId:\n          Ref: CognitoUserPool\n        Precedence: 0\n\n    ServiceRequestsTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${self:service}-${sls:stage}-service-requests\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: requestId\n            AttributeType: S\n          - AttributeName: userId\n            AttributeType: S\n          - AttributeName: status\n            AttributeType: S\n          - AttributeName: createdAt\n            AttributeType: S\n        KeySchema:\n          - AttributeName: requestId\n            KeyType: HASH\n        GlobalSecondaryIndexes:\n          - IndexName: userId-index\n            KeySchema:\n              - AttributeName: userId\n                KeyType: HASH\n              - AttributeName: createdAt\n                KeyType: RANGE\n            Projection:\n              ProjectionType: ALL\n          - IndexName: status-index\n            KeySchema:\n              - AttributeName: status\n                KeyType: HASH\n              - AttributeName: createdAt\n                KeyType: RANGE\n            Projection:\n              ProjectionType: ALL\n\n    CognitoUserPoolClient:\n      Type: AWS::Cognito::UserPoolClient\n      Properties:\n        ClientName: ${self:service}-${sls:stage}-client\n        UserPoolId:\n          Ref: CognitoUserPool\n        GenerateSecret: false\n        ExplicitAuthFlows:\n          - ALLOW_USER_PASSWORD_AUTH\n          - ALLOW_REFRESH_TOKEN_AUTH\n          - ALLOW_USER_SRP_AUTH\n        PreventUserExistenceErrors: ENABLED\n        AccessTokenValidity: 1\n        IdTokenValidity: 1\n        RefreshTokenValidity: 30\n        TokenValidityUnits:\n          AccessToken: days\n          IdToken: days\n          RefreshToken: days\n\n  Outputs:\n    CognitoUserPoolId:\n      Value:\n        Ref: CognitoUserPool\n      Export:\n        Name: ${self:service}-${sls:stage}-UserPoolId\n    CognitoUserPoolClientId:\n      Value:\n        Ref: CognitoUserPoolClient\n      Export:\n        Name: ${self:service}-${sls:stage}-UserPoolClientId\n",
+    "serviceRawFile": "# serverless.yml\r\nservice: daily-spend-manager\r\n\r\ncustom:\r\n  awsProfile: ${opt:aws-profile, env:AWS_PROFILE, 'default'}\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs20.x\r\n  region: us-east-1\r\n  stage: ${opt:stage, 'dev'}\r\n  profile: ${self:custom.awsProfile}\r\n  environment:\r\n    DYNAMODB_USERS_TABLE: ${self:service}-${sls:stage}-users\r\n    DYNAMODB_CONTACTS_TABLE: ${self:service}-${sls:stage}-contacts\r\n    DYNAMODB_SERVICE_REQUESTS_TABLE: ${self:service}-${sls:stage}-service-requests\r\n    DYNAMODB_USERS_EMAIL_INDEX: email-index\r\n    S3_BUCKET: ${self:service}-${sls:stage}-uploads-${aws:accountId}\r\n    COGNITO_USER_POOL_ID:\r\n      Ref: CognitoUserPool\r\n    COGNITO_CLIENT_ID:\r\n      Ref: CognitoUserPoolClient\r\n    COGNITO_REGION: ${self:provider.region}\r\n  iam:\r\n    role:\r\n      statements:\r\n        - Effect: Allow\r\n          Action:\r\n            - dynamodb:PutItem\r\n            - dynamodb:GetItem\r\n            - dynamodb:Query\r\n            - dynamodb:Scan\r\n            - dynamodb:DeleteItem\r\n            - dynamodb:UpdateItem\r\n          Resource:\r\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users\r\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-users/index/email-index\r\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-contacts\r\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests\r\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests/index/userId-index\r\n            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${sls:stage}-service-requests/index/status-index\r\n        - Effect: Allow\r\n          Action:\r\n            - s3:PutObject\r\n            - s3:GetObject\r\n            - s3:DeleteObject\r\n          Resource:\r\n            - arn:aws:s3:::${self:service}-${sls:stage}-uploads-${aws:accountId}/*\r\n        - Effect: Allow\r\n          Action:\r\n            - cognito-idp:AdminGetUser\r\n            - cognito-idp:AdminCreateUser\r\n            - cognito-idp:AdminDeleteUser\r\n            - cognito-idp:AdminAddUserToGroup\r\n            - cognito-idp:AdminListGroupsForUser\r\n          Resource:\r\n            - Fn::GetAtt: [CognitoUserPool, Arn]\r\n\r\nfunctions:\r\n  api:\r\n    handler: lambda.handler\r\n    events:\r\n      # Root\r\n      - http:\r\n          path: /\r\n          method: GET\r\n          cors: true\r\n\r\n      # Auth routes\r\n      - http:\r\n          path: /api/auth/register\r\n          method: POST\r\n          cors: true\r\n      - http:\r\n          path: /api/auth/confirm\r\n          method: POST\r\n          cors: true\r\n      - http:\r\n          path: /api/auth/resend-code\r\n          method: POST\r\n          cors: true\r\n      - http:\r\n          path: /api/auth/login\r\n          method: POST\r\n          cors: true\r\n      - http:\r\n          path: /api/auth/forgot-password\r\n          method: POST\r\n          cors: true\r\n      - http:\r\n          path: /api/auth/confirm-forgot-password\r\n          method: POST\r\n          cors: true\r\n      - http:\r\n          path: /api/auth/me\r\n          method: GET\r\n          cors: true\r\n\r\n      # Contact routes\r\n      - http:\r\n          path: /api/contacts\r\n          method: GET\r\n          cors: true\r\n      - http:\r\n          path: /api/contacts/mine\r\n          method: GET\r\n          cors: true\r\n      - http:\r\n          path: /api/contacts\r\n          method: POST\r\n          cors: true\r\n      - http:\r\n          path: /api/contacts/{id}\r\n          method: PUT\r\n          cors: true\r\n      - http:\r\n          path: /api/contacts/{id}\r\n          method: DELETE\r\n          cors: true\r\n\r\n      # Upload routes\r\n      - http:\r\n          path: /api/uploads/presign\r\n          method: POST\r\n          cors: true\r\n\r\n      # Service Request routes\r\n      - http:\r\n          path: /api/service-requests\r\n          method: POST\r\n          cors: true\r\n      - http:\r\n          path: /api/service-requests\r\n          method: GET\r\n          cors: true\r\n      - http:\r\n          path: /api/service-requests/mine\r\n          method: GET\r\n          cors: true\r\n      - http:\r\n          path: /api/service-requests/{id}\r\n          method: GET\r\n          cors: true\r\n      - http:\r\n          path: /api/service-requests/{id}/status\r\n          method: PUT\r\n          cors: true\r\n      - http:\r\n          path: /api/service-requests/{id}/response\r\n          method: PUT\r\n          cors: true\r\n      - http:\r\n          path: /api/service-requests/{id}/notes\r\n          method: PUT\r\n          cors: true\r\n      - http:\r\n          path: /api/service-requests/{id}\r\n          method: DELETE\r\n          cors: true\r\n\r\nplugins:\r\n  - serverless-offline\r\n\r\nresources:\r\n  Resources:\r\n    UsersTable:\r\n      Type: AWS::DynamoDB::Table\r\n      Properties:\r\n        TableName: ${self:service}-${sls:stage}-users\r\n        BillingMode: PAY_PER_REQUEST\r\n        AttributeDefinitions:\r\n          - AttributeName: userId\r\n            AttributeType: S\r\n          - AttributeName: email\r\n            AttributeType: S\r\n        KeySchema:\r\n          - AttributeName: userId\r\n            KeyType: HASH\r\n        GlobalSecondaryIndexes:\r\n          - IndexName: email-index\r\n            KeySchema:\r\n              - AttributeName: email\r\n                KeyType: HASH\r\n            Projection:\r\n              ProjectionType: ALL\r\n\r\n    ContactsTable:\r\n      Type: AWS::DynamoDB::Table\r\n      Properties:\r\n        TableName: ${self:service}-${sls:stage}-contacts\r\n        BillingMode: PAY_PER_REQUEST\r\n        AttributeDefinitions:\r\n          - AttributeName: contactId\r\n            AttributeType: S\r\n        KeySchema:\r\n          - AttributeName: contactId\r\n            KeyType: HASH\r\n\r\n    UploadsBucket:\r\n      Type: AWS::S3::Bucket\r\n      Properties:\r\n        BucketName: ${self:service}-${sls:stage}-uploads-${aws:accountId}\r\n        CorsConfiguration:\r\n          CorsRules:\r\n            - AllowedOrigins:\r\n                - '*'\r\n              AllowedHeaders:\r\n                - '*'\r\n              AllowedMethods:\r\n                - PUT\r\n                - POST\r\n\r\n    CognitoUserPool:\r\n      Type: AWS::Cognito::UserPool\r\n      Properties:\r\n        UserPoolName: ${self:service}-${sls:stage}-user-pool\r\n        UsernameAttributes:\r\n          - email\r\n        AutoVerifiedAttributes:\r\n          - email\r\n        Policies:\r\n          PasswordPolicy:\r\n            MinimumLength: 8\r\n            RequireLowercase: true\r\n            RequireNumbers: true\r\n            RequireSymbols: false\r\n            RequireUppercase: true\r\n        Schema:\r\n          - Name: name\r\n            AttributeDataType: String\r\n            Mutable: true\r\n            Required: false\r\n          - Name: email\r\n            AttributeDataType: String\r\n            Mutable: false\r\n            Required: true\r\n\r\n    CognitoAdminGroup:\r\n      Type: AWS::Cognito::UserPoolGroup\r\n      Properties:\r\n        GroupName: admin\r\n        Description: Administrator group with elevated permissions\r\n        UserPoolId:\r\n          Ref: CognitoUserPool\r\n        Precedence: 0\r\n\r\n    ServiceRequestsTable:\r\n      Type: AWS::DynamoDB::Table\r\n      Properties:\r\n        TableName: ${self:service}-${sls:stage}-service-requests\r\n        BillingMode: PAY_PER_REQUEST\r\n        AttributeDefinitions:\r\n          - AttributeName: requestId\r\n            AttributeType: S\r\n          - AttributeName: userId\r\n            AttributeType: S\r\n          - AttributeName: status\r\n            AttributeType: S\r\n          - AttributeName: createdAt\r\n            AttributeType: S\r\n        KeySchema:\r\n          - AttributeName: requestId\r\n            KeyType: HASH\r\n        GlobalSecondaryIndexes:\r\n          - IndexName: userId-index\r\n            KeySchema:\r\n              - AttributeName: userId\r\n                KeyType: HASH\r\n              - AttributeName: createdAt\r\n                KeyType: RANGE\r\n            Projection:\r\n              ProjectionType: ALL\r\n          - IndexName: status-index\r\n            KeySchema:\r\n              - AttributeName: status\r\n                KeyType: HASH\r\n              - AttributeName: createdAt\r\n                KeyType: RANGE\r\n            Projection:\r\n              ProjectionType: ALL\r\n\r\n    CognitoUserPoolClient:\r\n      Type: AWS::Cognito::UserPoolClient\r\n      Properties:\r\n        ClientName: ${self:service}-${sls:stage}-client\r\n        UserPoolId:\r\n          Ref: CognitoUserPool\r\n        GenerateSecret: false\r\n        ExplicitAuthFlows:\r\n          - ALLOW_USER_PASSWORD_AUTH\r\n          - ALLOW_REFRESH_TOKEN_AUTH\r\n          - ALLOW_USER_SRP_AUTH\r\n        PreventUserExistenceErrors: ENABLED\r\n        AccessTokenValidity: 1\r\n        IdTokenValidity: 1\r\n        RefreshTokenValidity: 30\r\n        TokenValidityUnits:\r\n          AccessToken: days\r\n          IdToken: days\r\n          RefreshToken: days\r\n\r\n  Outputs:\r\n    CognitoUserPoolId:\r\n      Value:\r\n        Ref: CognitoUserPool\r\n      Export:\r\n        Name: ${self:service}-${sls:stage}-UserPoolId\r\n    CognitoUserPoolClientId:\r\n      Value:\r\n        Ref: CognitoUserPoolClient\r\n      Export:\r\n        Name: ${self:service}-${sls:stage}-UserPoolClientId\r\n",
     "command": [
       "invoke",
       "local"
     ],
     "options": {
       "function": "api",
-      "path": "mocks/delete-contact-event.json"
+      "path": "mocks/services/update-message-event.json"
     },
     "orgId": "fc80d47c-9ba0-407b-baa1-fb1113a4c075",
     "orgName": "deepankar68",
     "userId": "Hn0nY27tMrVsKyhd4B",
     "userName": "deepankar68",
-    "serviceProviderAwsAccountId": "542829982435",
+    "serviceProviderAwsAccountId": "083304596336",
     "serviceProviderAwsCfStackName": "daily-spend-manager-dev",
-    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:542829982435:stack/daily-spend-manager-dev/dece9970-0127-11f1-8f65-0e4555ce26af",
-    "serviceProviderAwsCfStackCreated": "2026-02-03T17:43:38.004Z",
-    "serviceProviderAwsCfStackUpdated": "2026-03-03T10:44:06.970Z",
-    "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:083304596336:stack/daily-spend-manager-dev/054a6f10-3586-11f1-84d4-0e47c75458c5",
+    "serviceProviderAwsCfStackCreated": "2026-04-11T09:08:35.749Z",
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": "CREATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "CognitoUserPoolClientId",
-        "OutputValue": "2bqjf96b0m7rsd2ghpi9fbn57m",
+        "OutputValue": "383gm80gq6aucqvtgin8puaj94",
         "ExportName": "daily-spend-manager-dev-UserPoolClientId"
       },
       {
         "OutputKey": "CognitoUserPoolId",
-        "OutputValue": "us-east-1_8Paf9SVsv",
+        "OutputValue": "us-east-1_JEMSaIoel",
         "ExportName": "daily-spend-manager-dev-UserPoolId"
       },
       {
         "OutputKey": "ApiLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-1:542829982435:function:daily-spend-manager-dev-api:25",
+        "OutputValue": "arn:aws:lambda:us-east-1:083304596336:function:daily-spend-manager-dev-api:1",
         "Description": "Current Lambda function version",
         "ExportName": "sls-daily-spend-manager-dev-ApiLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "ServiceEndpoint",
-        "OutputValue": "https://e8fqpcb934.execute-api.us-east-1.amazonaws.com/dev",
+        "OutputValue": "https://hdqeuhiwl9.execute-api.us-east-1.amazonaws.com/dev",
         "Description": "URL of the service endpoint",
         "ExportName": "sls-daily-spend-manager-dev-ServiceEndpoint"
       },
       {
         "OutputKey": "ServerlessDeploymentBucketName",
-        "OutputValue": "serverless-framework-deployments-us-east-1-c7c94560-c520",
+        "OutputValue": "serverless-framework-deployments-us-east-1-ce7eaa24-370b",
         "ExportName": "sls-daily-spend-manager-dev-ServerlessDeploymentBucketName"
       }
     ]

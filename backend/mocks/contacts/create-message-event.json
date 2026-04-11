@@ -1,0 +1,23 @@
+{
+  "httpMethod": "POST",
+  "path": "/api/contacts",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "queryStringParameters": null,
+  "pathParameters": null,
+  "body": "{\"name\":\"Alex Beginner\",\"email\":\"deepankarsahoo68@gmail.com\",\"service\":\"Website Development\",\"message\":\"I need a simple business website with contact form.\"}",
+  "isBase64Encoded": false,
+  "requestContext": {
+    "stage": "dev",
+    "resourcePath": "/api/contacts",
+    "httpMethod": "POST",
+    "authorizer": {
+      "claims": {
+        "sub": "8418e448-5061-70a5-ff2d-5e66b868941e",
+        "email": "deepankarsahoo68@gmail.com",
+        "name": "Deepankar Sahoo"
+      }
+    }
+  }
+}

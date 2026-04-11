@@ -1,0 +1,28 @@
+{
+  "httpMethod": "PUT",
+  "path": "/api/service-requests/11111111-1111-1111-1111-111111111111/status",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "queryStringParameters": null,
+  "pathParameters": {
+    "id": "11111111-1111-1111-1111-111111111111"
+  },
+  "body": "{\"status\":\"reviewed\"}",
+  "isBase64Encoded": false,
+  "requestContext": {
+    "stage": "dev",
+    "resourcePath": "/api/service-requests/{id}/status",
+    "httpMethod": "PUT",
+    "authorizer": {
+      "claims": {
+        "sub": "8418e448-5061-70a5-ff2d-5e66b868941e",
+        "email": "deepankarsahoo68@gmail.com",
+        "name": "Deepankar Sahoo",
+        "cognito:groups": [
+          "admin"
+        ]
+      }
+    }
+  }
+}
